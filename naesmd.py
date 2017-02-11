@@ -110,8 +110,12 @@ def find_nasqm_excited_state(input_file, output_file, n_states=1):
                 energies.append(m[0])
                 strengths.append(m[-1])
 
-    for energy, strength in zip(energies, strengths):
-        fo.write("{: 24.14E}{: 24.14E}\n".format(float(energy), float(strength)))
+    n_steps = int(len(energies) / n_states)
+    for step in range(n_steps):
+        for state in range(n_states):
+            index = n_states * step + state
+            fo.write("{: 24.14E}{: 24.14E}".format(float(energies[index]), float(strengths[index])))
+        fo.write('\n')
 
 
 def find_nasqm_transition_dipole(input_file, output_file, state=0):

@@ -14,13 +14,13 @@ x_minimum = 2.0
 # Change here the maximum energy in (eV)
 x_maximum = 5
 # Change here the input file
-file_input = 'nasqm_excited_omegas.txt'
+file_input = 'spectra.input'
 # Change here the output file
-file_output = 'nasqm_excited_spectra.txt'
+file_output = 'spectra.output'
 
 
 def get_fwhm_energy_value(energy, fwhm, gauss_index, n_gauss):
-    return energy - (2.0 * fwhm) + (gauss_index * 4.0 * fwhm / n_gauss)
+    return energy - (2.0 * fwhm) + ((gauss_index+1) * 4.0 * fwhm / n_gauss)
 
 
 def calculate_exponential(energy, strength, sigma, x_value_of_half_width):
@@ -45,17 +45,17 @@ def calculate_spectra(n_states, n_gauss, fwhm, n_bins, x_min, x_max, file_in, fi
 
     sigma = fwhm / 2.35482
 
-    # Rows will correspond to time steps while columns 0, 1
+    # Rows will correspond to time steps while columns (0, 1)_state
     # are frequency and strengths
     data = np.loadtxt(file_in)
 
     strengths = np.zeros((n_states, n_bins))
     total_strength = 0
 
-    for state in range(n_states):
-        for time_step in range(int(len(data)/n_states)):
-            energy = data[time_step + state][0]
-            strength = data[time_step + state][1]
+    for time_step in range(len(data)):
+        for state in range(n_states):
+            energy = data[time_step][2*state]
+            strength = data[time_step][2*state+1]
             for gauss_point in range(n_gauss):
                 energy_at_lower_fwhm = get_fwhm_energy_value(energy, fwhm, gauss_point, n_gauss)
                 normalized_strength = calculate_exponential(energy, strength, sigma, energy_at_lower_fwhm)
