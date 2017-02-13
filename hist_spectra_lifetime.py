@@ -2,7 +2,7 @@ import numpy as np
 from math import exp
 
 # Change here to the number of excited states propagated
-number_states = 2
+number_states = 5
 # Change here if you want more points per gaussian ?
 number_gauss = 100
 # Change the parameter for full width at half max in eV

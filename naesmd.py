@@ -178,7 +178,7 @@ def create_nasqm_restart(nasqm_root):
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_nasqm_snapshots(nasqm_root, n_coordinates):
+def run_nasqm_snapshots(nasqm_root, n_coordinates, n_states):
     create_nasqm_restart(nasqm_root)
     out_file = 'nasqm_ground_snapshots.out'
     temp_file = 'nasqm_ground_snap_temp'
@@ -189,7 +189,7 @@ def run_nasqm_snapshots(nasqm_root, n_coordinates):
         temp_in = open('nasqm_ground_snap_temp.out', 'r').read()
         file_out.write(temp_in)
     subprocess.run('rm nasqm_ground_snap_temp*', shell=True)
-    find_nasqm_excited_state(out_file, nasqm_root+'_omegas.txt')
+    find_nasqm_excited_state(out_file, nasqm_root+'_omegas.txt', n_states)
     find_nasqm_transition_dipole(out_file, nasqm_root+'_dipoles.txt')
     subprocess.run('rm output.crd.*', shell=True)
 
@@ -214,8 +214,8 @@ def set_inpcrd(coordinates):
 
 def main(n_steps):
 
-    is_qmmm = True
-    is_box = True
+    is_qmmm = False
+    is_box = False
 
     # Copy inputs
     input_ceon_bac = open('input.ceon', 'r').read()
@@ -228,8 +228,8 @@ def main(n_steps):
     start_time = time.time()
 
     # Run the Ground State
-    n_exc_states_propagate = 0
-    exc_state_init = 0
+    n_exc_states_propagate = 20
+    exc_state_init = 1
     verbosity = 0
     input_ceon = InputCeon(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
 
@@ -237,7 +237,7 @@ def main(n_steps):
     coordinate_file = None
     if is_qmmm:
         coordinate_file = 'm1_md2.rst'
-    # run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
+    run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
     # NAESMD
     # run_naesmd('naesmd_ground')
 
@@ -248,9 +248,10 @@ def main(n_steps):
     n_steps_to_print = 1
     exc_state_init = 0
     verbosity = 3
+    n_states = 5
     input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
     # run_naesmd_snapshots('naesmd_ground', n_coordinates, input_ceon)
-    run_nasqm_snapshots('nasqm_ground', n_coordinates)
+    run_nasqm_snapshots('nasqm_ground', n_coordinates, n_states=n_states)
 
     # Restore Original Inputs
     open('input.ceon', 'w').write(input_ceon_bac)
@@ -261,7 +262,6 @@ def main(n_steps):
     end_time = time.time()
     print("Job finished in %s seconds" % (end_time - start_time))
 
-# n_steps = int(sys.argv[1])
-# main(n_steps)
-find_nasqm_excited_state('nasqm_ground_snapshots.out', 'nasqm_excited_omegas.txt', n_states=2)
+n_steps = int(sys.argv[1])
+main(n_steps)
 
