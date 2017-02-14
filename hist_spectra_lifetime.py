@@ -12,7 +12,7 @@ number_bins = 1000
 # Change here the minimum energy in (eV)
 x_minimum = 2.0
 # Change here the maximum energy in (eV)
-x_maximum = 5
+x_maximum = 4.1
 # Change here the input file
 file_input = 'spectra.input'
 # Change here the output file

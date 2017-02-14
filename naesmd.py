@@ -233,13 +233,13 @@ def main(n_steps):
     verbosity = 0
     input_ceon = InputCeon(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
 
-    # NASQM
-    coordinate_file = None
-    if is_qmmm:
-        coordinate_file = 'm1_md2.rst'
-    run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
-    # NAESMD
-    # run_naesmd('naesmd_ground')
+    # # NASQM
+    # coordinate_file = None
+    # if is_qmmm:
+    #     coordinate_file = 'm1_md2.rst'
+    # run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
+    # # NAESMD
+    # # run_naesmd('naesmd_ground')
 
     # Now we want to take the geometry snapshots and run single-point calculations
     # on these to get the S1 excited states
@@ -264,4 +264,5 @@ def main(n_steps):
 
 n_steps = int(sys.argv[1])
 main(n_steps)
+# find_nasqm_excited_state('nasqm_ground_snapshots.out', 'spectra.input', n_states=5)
 
