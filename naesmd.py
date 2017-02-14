@@ -188,6 +188,8 @@ def run_nasqm_snapshots(nasqm_root, n_coordinates, n_states):
         run_nasqm(temp_file, coordinate_file=coordinate_file)
         temp_in = open('nasqm_ground_snap_temp.out', 'r').read()
         file_out.write(temp_in)
+        if i % 10 == 0:
+            print('Finished with snapshot', i+1)
     subprocess.run('rm nasqm_ground_snap_temp*', shell=True)
     find_nasqm_excited_state(out_file, nasqm_root+'_omegas.txt', n_states)
     find_nasqm_transition_dipole(out_file, nasqm_root+'_dipoles.txt')
