@@ -7,6 +7,7 @@ import os
 import numpy as np
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table
+from amber import run_amber_parallel
 
 
 def get_xyz_coordinates(file_stream):
@@ -172,28 +173,31 @@ def get_atom_types_prmtop(nasqm_root):
     return a_types
 
 
-def create_nasqm_restart(nasqm_root):
-    create_convert_to_crd()
-    sed_inplace('convert_to_crd.in', 'trajin .*\.nc', 'trajin '+nasqm_root+'.nc')
+def create_restarts(input, output, step):
+    ctc = 'parm m1.prmtop\n' \
+          'trajin ' + input + '.nc' + ' 1 last ' + str(step) + "\n" \
+          'center :1\n' \
+          'trajout ' + output + ' restart\n' \
+          'run\n' \
+          'quit'
+    open('convert_to_crd.in', 'w').write(ctc)
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_nasqm_snapshots(nasqm_root, n_coordinates, n_states):
-    create_nasqm_restart(nasqm_root)
-    out_file = 'nasqm_ground_snapshots.out'
-    temp_file = 'nasqm_ground_snap_temp'
-    file_out = open(out_file, 'w')
-    for i in range(n_coordinates):
-        coordinate_file = 'output.crd.'+str(i+1)
-        run_nasqm(temp_file, coordinate_file=coordinate_file)
-        temp_in = open('nasqm_ground_snap_temp.out', 'r').read()
-        file_out.write(temp_in)
-        if i % 10 == 0:
-            print('Finished with snapshot', i+1)
-    subprocess.run('rm nasqm_ground_snap_temp*', shell=True)
-    find_nasqm_excited_state(out_file, nasqm_root+'_omegas.txt', n_states)
-    find_nasqm_transition_dipole(out_file, nasqm_root+'_dipoles.txt')
-    subprocess.run('rm output.crd.*', shell=True)
+def run_ground_state_snapshots(nasqm_root, n_coordinates, n_snapshots):
+    restart_step = n_coordinates // n_snapshots
+    create_restarts(input=nasqm_root, output='ground_abs', step=restart_step)
+    snap_trajectories = []
+    snap_restarts = []
+    for i in range(n_snapshots):
+        snap_restarts.append("ground_abs."+str(i+1))
+        snap_trajectories.append("nasqm_abs_"+str(i))
+    print(snap_trajectories)
+    print(snap_restarts)
+    run_amber_parallel(snap_trajectories, snap_restarts)
+
+
+def run_absorption_snapshots(nasqm_root, n_coordinates, n_snapshots, n_states):
 
 
 def set_inpcrd(coordinates):
@@ -214,46 +218,62 @@ def set_inpcrd(coordinates):
     open('m1.inpcrd', 'w').write(inpcrd)
 
 
-def main(n_steps):
+def main():
 
-    is_qmmm = False
-    is_box = False
+    is_qmmm = True
+    is_hpc = False
+    run_ground_dynamics = False
+    run_absorption = True
 
     # Copy inputs
     input_ceon_bac = open('input.ceon', 'r').read()
     md_qmmm_amb = open('md_qmmm_amb.in', 'r').read()
     m1_inpcrd = open('m1.inpcrd', 'r').read()
 
+    # Create the input_ceon object
+    input_ceon = InputCeon()
+
+    # Change here the runtime and time step of the initial
+    # ground state MD
+    ground_state_run_time = 1  # ps
+    ground_state_time_step = 0.5  # fs
+
+    # Change here the number of snapshots you wish to take
+    # from the initial ground state trajectory
+    n_snapshots_gs = 20
+
+    n_steps_gs = ground_state_run_time // ground_state_time_step * 1000
     n_steps_to_print = 50
-    n_coordinates = int(n_steps / n_steps_to_print)
+    n_coordinates_gs = int(n_steps_gs / n_steps_to_print)
+
+    # Change here the runtime for the the trajectories
+    # used to create calculated the absorption
+    abs_run_time = 1 # ps
+
 
     start_time = time.time()
 
     # Run the Ground State
-    n_exc_states_propagate = 20
-    exc_state_init = 1
-    verbosity = 0
-    input_ceon = InputCeon(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
-
-    # # NASQM
-    # coordinate_file = None
-    # if is_qmmm:
-    #     coordinate_file = 'm1_md2.rst'
-    # run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
-    # # NAESMD
-    # # run_naesmd('naesmd_ground')
-
-    # Now we want to take the geometry snapshots and run single-point calculations
-    # on these to get the S1 excited states
-    n_exc_states_propagate = 20
-    n_steps = 0
-    n_steps_to_print = 1
-    exc_state_init = 0
-    verbosity = 3
-    n_states = 5
-    input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
-    # run_naesmd_snapshots('naesmd_ground', n_coordinates, input_ceon)
-    run_nasqm_snapshots('nasqm_ground', n_coordinates, n_states=n_states)
+    if run_ground_dynamics:
+        n_exc_states_propagate = 0
+        exc_state_init = 0
+        verbosity = 0
+        input_ceon.set_input(n_steps_gs, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
+        coordinate_file = None
+        if is_qmmm:
+            coordinate_file = 'm1_md2.rst'
+        run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
+        # Now we want to take the geometry snapshots and run more trajectories
+        # from those
+    if run_absorption:
+        run_ground_state_snapshots('nasqm_ground', n_coordinates_gs, n_snapshots_gs)
+        n_exc_states_propagate = 20
+        n_steps_gs = 5
+        n_steps_to_print = 1
+        exc_state_init = 0
+        verbosity = 3
+        n_states = 5
+        input_ceon.set_input(n_steps_gs, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity)
 
     # Restore Original Inputs
     open('input.ceon', 'w').write(input_ceon_bac)
@@ -264,7 +284,7 @@ def main(n_steps):
     end_time = time.time()
     print("Job finished in %s seconds" % (end_time - start_time))
 
-n_steps = int(sys.argv[1])
-main(n_steps)
+main()
 # find_nasqm_excited_state('nasqm_ground_snapshots.out', 'spectra.input', n_states=5)
+
 
