@@ -96,10 +96,9 @@ def run_naesmd_snapshots(root_name, n_coordinates, input_ceon):
         find_nasqm_transition_dipole(out_file, root_name+'_dipoles')
 
 
-def find_nasqm_excited_state(input_file, output_file, n_states=1):
-    f = open(input_file, 'r')
-    out_file = output_file
-    fo = open(out_file, 'w')
+def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
+    f = input_stream
+    fo = output_stream
     p_omega = re.compile('Frequencies \(eV\) and Oscillator')
     p_float = '-?\d+\.\d+E?-?\d*'
     energies = []
@@ -250,17 +249,54 @@ def create_spectras(n_trajectories, n_states):
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         spectra_file = 'spectra_' + str(i+1) + '.input'
-        find_nasqm_excited_state(amber_outfile, spectra_file, n_states=n_states)
+        input_stream = open(amber_outfile, 'r')
+        output_stream = open(spectra_file, 'w')
+        find_nasqm_excited_state(input_stream, output_stream, n_states=n_states)
+
+
+def accumulate_abs_spectra(n_trajectories, n_frames):
+    output_stream = open('spectra_abs.input', 'w')
+    for traj in range(n_trajectories):
+        for frame in range(n_frames):
+            amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
+            input_stream = open(amber_out, 'r')
+            find_nasqm_excited_state(input_stream, output_stream, n_states=20)
 
 
 def main():
-
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # Begin Inputs
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
-    is_hpc = True
+    is_hpc = False
     run_ground_dynamics = True
     run_absorption_trajectories = True
     run_absorption_snapshots = True
+    run_absorption_collection = True
     run_excited_state = False
+
+    # Change here the number of snapshots you wish to take
+    # from the initial ground state trajectory
+    n_snapshots_gs = 4
+
+    # Change here the time step that will be shared by
+    # each trajectory
+    time_step = 0.5  # fs
+
+    # Change here the runtime of the initial ground state MD
+    ground_state_run_time = 0.5  # ps
+
+    # Change here the runtime for the the trajectories
+    # used to create calculated the absorption
+    abs_run_time = 1  # ps
+
+    # Change here the runtime for the the trajectories
+    # used to create calculated the fluorescence
+    exc_run_time = 0.1  # ps
+
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    # End Inputs
+    # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     # Copy inputs
     input_ceon_bac = open('input.ceon', 'r').read()
@@ -270,30 +306,13 @@ def main():
     # Create the input_ceon object
     input_ceon = InputCeon()
 
-    # Change here the runtime and time step of the initial
-    # ground state MD
-    ground_state_run_time = 0.1  # ps
-    time_step = 0.5  # fs
-
-    # Change here the number of snapshots you wish to take
-    # from the initial ground state trajectory
-    n_snapshots_gs = 4
-
     n_steps_gs = int(ground_state_run_time / time_step * 1000)
-    n_steps_to_print = 50
-    n_frames_gs = int(n_steps_gs / n_steps_to_print)
-
-    # Change here the runtime for the the trajectories
-    # used to create calculated the absorption
-    abs_run_time = 0.1  # ps
+    n_steps_to_print_gs = 50
+    n_frames_gs = int(n_steps_gs / n_steps_to_print_gs)
 
     n_steps_abs = int(abs_run_time / time_step * 1000)
-    n_steps_to_print = 50
-    n_frames_abs = int(n_steps_gs / n_steps_to_print)
-
-    # Change here the runtime for the the trajectories
-    # used to create calculated the absorption
-    exc_run_time = 0.1  # ps
+    n_steps_to_print_abs = 50
+    n_frames_abs = int(n_steps_gs / n_steps_to_print_abs)
 
     start_time = time.time()
 
@@ -302,7 +321,7 @@ def main():
         n_exc_states_propagate = 0
         exc_state_init = 0
         verbosity = 0
-        input_ceon.set_input(n_steps_gs, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity,
+        input_ceon.set_input(n_steps_gs, n_exc_states_propagate, n_steps_to_print_gs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
         coordinate_file = None
         if is_qmmm:
@@ -314,20 +333,21 @@ def main():
         n_exc_states_propagate = 0
         exc_state_init = 0
         verbosity = 0
-        input_ceon.set_input(n_steps_abs, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity,
+        input_ceon.set_input(n_steps_abs, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
         run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc)
-    if run_abs_snapshots:
+    if run_absorption_snapshots:
         # Once the ground state trajectory files are made, we need
         # to calculate snapshots the Si - S0 energies
         n_exc_states_propagate = 20
-        n_steps_to_print = 1
         exc_state_init = 0
         verbosity = 3
         n_steps = 0
-        input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity,
+        input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
         run_abs_snapshots(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
+    if run_absorption_collection:
+        accumulate_abs_spectra(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
     if run_excited_state:
         # We take the original trajectory snapshots and run further trajectories
         # from those at the excited state
