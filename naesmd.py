@@ -7,7 +7,7 @@ import os
 import numpy as np
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table
-from amber import run_amber_parallel, create_slurm_script
+from amber import run_amber_parallel, create_trajectory_slurm_script, create_snapshot_slurm_script
 
 
 def get_xyz_coordinates(file_stream):
@@ -189,28 +189,28 @@ def create_restarts(input, output, step=None):
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_ground_state_snapshots(nasqm_root, output, n_coordinates, n_snapshots, is_hpc):
+def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc):
     restart_step = n_coordinates // n_snapshots
     create_restarts(input=nasqm_root, output='ground_snap', step=restart_step)
     snap_restarts = []
     snap_trajectories = []
     if n_snapshots == 1:
         snap_restarts.append("ground_snap")
-        snap_trajectories.append(output+'1')
+        snap_trajectories.append(output_root + '1')
     else:
         for i in range(n_snapshots):
             snap_restarts.append("ground_snap."+str(i+1))
-            snap_trajectories.append(output+str(i+1))
+            snap_trajectories.append(output_root + str(i + 1))
     if is_hpc:
-        create_slurm_script(script_file_name='run_abs_trajectories.sbatch', n_arrays=n_coordinates, root_name=output,
-                            crd_file='ground_snap')
+        create_trajectory_slurm_script(script_file_name='run_abs_trajectories.sbatch', n_arrays=n_coordinates,
+                                       root_name=output_root, crd_file='ground_snap')
         print("Please now submit run_abs_trajectories.sbatch, then run abs snapshots")
         sys.exit('Slurm submission exception')
     else:
         run_amber_parallel(snap_trajectories, snap_restarts, number_processors=4)
 
 
-def run_abs_snapshots(n_trajectories, n_frames):
+def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
         create_restarts(input=amber_restart, output=amber_restart)
@@ -222,9 +222,13 @@ def run_abs_snapshots(n_trajectories, n_frames):
         for frame in range(n_frames):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
-    print(snap_singles)
-    print(snap_restarts)
-    run_amber_parallel(snap_singles, snap_restarts, number_processors=4)
+    if is_hpc:
+        create_snapshot_slurm_script(script_file_name='run_abs_snapshot.sbatch', n_trajectories=n_trajectories,
+                                     n_frames=n_frames, root_name=output_root, crd_file=output_root)
+        print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
+        sys.exit('Slurm submission exception')
+    else:
+        run_amber_parallel(snap_singles, snap_restarts, number_processors=4)
 
 
 def set_inpcrd(coordinates):
@@ -267,13 +271,13 @@ def main():
     # Begin Inputs
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
-    is_hpc = False
+    is_hpc = True
     run_ground_dynamics = False
     run_absorption_trajectories = False
-    run_absorption_snapshots = False
+    run_absorption_snapshots = True
     run_absorption_collection = False
     run_excited_state = False
-    run_fluorescence_collection = True
+    run_fluorescence_collection = False
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -290,11 +294,11 @@ def main():
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 0.5  # ps
+    ground_state_run_time = 0.1  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
-    abs_run_time = 1  # ps
+    abs_run_time = 0.1  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
@@ -355,7 +359,7 @@ def main():
         n_steps = 0
         input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
-        run_abs_snapshots(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
+        run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=n_snapshots_gs, n_frames=n_frames_abs, is_hpc=is_hpc)
     if run_absorption_collection:
         accumulate_abs_spectra(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
     if run_excited_state:
