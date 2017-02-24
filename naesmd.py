@@ -245,22 +245,21 @@ def set_inpcrd(coordinates):
     open('m1.inpcrd', 'w').write(inpcrd)
 
 
-def create_spectras(n_trajectories, n_states):
+def accumulate_flu_spectra(n_trajectories, n_states=1):
+    output_stream = open('spectra_flu.input', 'w')
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
-        spectra_file = 'spectra_' + str(i+1) + '.input'
         input_stream = open(amber_outfile, 'r')
-        output_stream = open(spectra_file, 'w')
         find_nasqm_excited_state(input_stream, output_stream, n_states=n_states)
 
 
-def accumulate_abs_spectra(n_trajectories, n_frames):
+def accumulate_abs_spectra(n_trajectories, n_frames, n_states=20):
     output_stream = open('spectra_abs.input', 'w')
     for traj in range(n_trajectories):
         for frame in range(n_frames):
             amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
             input_stream = open(amber_out, 'r')
-            find_nasqm_excited_state(input_stream, output_stream, n_states=20)
+            find_nasqm_excited_state(input_stream, output_stream, n_states)
 
 
 def main():
@@ -269,15 +268,22 @@ def main():
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
     is_hpc = False
-    run_ground_dynamics = True
-    run_absorption_trajectories = True
-    run_absorption_snapshots = True
-    run_absorption_collection = True
+    run_ground_dynamics = False
+    run_absorption_trajectories = False
+    run_absorption_snapshots = False
+    run_absorption_collection = False
     run_excited_state = False
+    run_fluorescence_collection = True
 
     # Change here the number of snapshots you wish to take
-    # from the initial ground state trajectory
+    # from the initial ground state trajectory to run the
+    # further ground state dynamics
     n_snapshots_gs = 4
+
+    # Change here the number of snapshots you wish to take
+    # from the initial ground state trajectory to run the
+    # new excited state dynamics
+    n_snapshots_ex = 4
 
     # Change here the time step that will be shared by
     # each trajectory
@@ -313,6 +319,10 @@ def main():
     n_steps_abs = int(abs_run_time / time_step * 1000)
     n_steps_to_print_abs = 50
     n_frames_abs = int(n_steps_gs / n_steps_to_print_abs)
+
+    n_steps_exc = int(exc_run_time / time_step * 1000)
+    n_steps_to_print_exc = 1
+    n_frames_exc = int(n_steps_exc / n_steps_to_print_exc)
 
     start_time = time.time()
 
@@ -355,11 +365,11 @@ def main():
         exc_state_init = 1
         verbosity = 3
         n_states = 1
-        n_steps = int(exc_run_time / time_step * 1000)
-        input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print, exc_state_init, verbosity=verbosity,
-                             time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_gs)
-        create_spectras(n_snapshots_gs, n_states)
+        input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
+                             verbosity=verbosity, time_step=time_step)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc)
+    if run_fluorescence_collection:
+        accumulate_flu_spectra(n_trajectories=n_snapshots_gs)
 
     # Restore Original Inputs
     open('input.ceon', 'w').write(input_ceon_bac)
