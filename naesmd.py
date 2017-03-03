@@ -202,7 +202,7 @@ def create_restarts(input, output, step=None):
 
 
 def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc):
-    restart_step = n_coordinates // n_snapshots
+    restart_step = int(n_coordinates / n_snapshots)
     create_restarts(input=nasqm_root, output='ground_snap', step=restart_step)
     snap_restarts = []
     snap_trajectories = []
