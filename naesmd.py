@@ -120,6 +120,18 @@ def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
         fo.write('\n')
 
 
+def find_excited_energy(input_stream, output_stream, state):
+    p_energy = re.compile('Total energies of excited states')
+    p_float = '-?\d+\.\d+E?-?\d*'
+    for line in input_stream:
+        line2 = line
+        if re.search(p_energy, line):
+            for s in range(state):
+                line2 = input_stream.readline()
+            m = re.findall(p_float, line2)
+            output_stream.write("{: 24.14E}".format(float(m[0])) + '\n')
+
+
 def find_nasqm_transition_dipole(input_file, output_file, state=0):
     f = open(input_file, 'r').read()
     fo = open(output_file, 'w')
@@ -255,6 +267,26 @@ def accumulate_flu_spectra(n_trajectories, n_states=1):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         input_stream = open(amber_outfile, 'r')
         find_nasqm_excited_state(input_stream, output_stream, n_states=n_states)
+    # We may also want the average omega_1s over time
+    average_omegas_time = open('omega_1_time.txt', 'w')
+    data = np.loadtxt('spectra_flu.input')
+    n_rows_per_trajectory = int(data.shape[0] / n_trajectories)
+    for i in range(n_rows_per_trajectory):
+        omega = np.average(data[i::n_rows_per_trajectory, 0])
+        average_omegas_time.write(str(omega) + '\n')
+    # FIXME Need to split this up
+    output_stream = open('nasqm_flu_energies.txt', 'w')
+    for i in range(n_trajectories):
+        amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
+        input_stream = open(amber_outfile, 'r')
+        find_excited_energy(input_stream, output_stream, 1)
+    average_energies_time = open('nasqm_flu_energy_time.txt', 'w')
+    data = np.loadtxt('nasqm_flu_energies.txt')
+    subprocess.run(['rm', 'nasqm_flu_energies.txt'])
+    n_rows_per_trajectory = int(data.shape[0] / n_trajectories)
+    for i in range(n_rows_per_trajectory):
+        e = np.average(data[i::n_rows_per_trajectory])
+        average_energies_time.write(str(e) + '\n')
 
 
 def accumulate_abs_spectra(n_trajectories, n_frames, n_states=20):
@@ -278,6 +310,7 @@ def clean_up_abs(n_trajectories, n_frame):
             subprocess.run(['rm', base_name + str(traj) + '.' + str(frame)])
 
 
+
 def main():
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # Begin Inputs
@@ -286,31 +319,31 @@ def main():
     is_hpc = False
     run_ground_dynamics = False
     run_absorption_trajectories = False
-    run_absorption_snapshots = True
-    run_absorption_collection = True
-    run_excited_state = True
+    run_absorption_snapshots = False
+    run_absorption_collection = False
+    run_excited_state = False
     run_fluorescence_collection = True
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # further ground state dynamics
-    n_snapshots_gs = 8
+    n_snapshots_gs = 4
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 8
+    n_snapshots_ex = 4
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 10  # ps
+    ground_state_run_time = 0.1  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
-    abs_run_time = 10  # ps
+    abs_run_time = 0.1  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
@@ -398,4 +431,3 @@ def main():
     print("Job finished in %s seconds" % (end_time - start_time))
 
 main()
-# create_spectras(1, 1)
