@@ -219,7 +219,7 @@ def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapsho
         print("Please now submit run_abs_trajectories.sbatch, then run abs snapshots")
         sys.exit('Slurm submission exception')
     else:
-        run_amber_parallel(snap_trajectories, snap_restarts, number_processors=4)
+        run_amber_parallel(snap_trajectories, snap_restarts, number_processors=8)
 
 
 def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
@@ -240,7 +240,7 @@ def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
         print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
         sys.exit('Slurm submission exception')
     else:
-        run_amber_parallel(snap_singles, snap_restarts, number_processors=4)
+        run_amber_parallel(snap_singles, snap_restarts, number_processors=8)
 
 
 def set_inpcrd(coordinates):
@@ -321,7 +321,7 @@ def main():
     run_absorption_trajectories = False
     run_absorption_snapshots = False
     run_absorption_collection = False
-    run_excited_state = False
+    run_excited_state = True
     run_fluorescence_collection = True
 
     # Change here the number of snapshots you wish to take
@@ -332,14 +332,14 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 4
+    n_snapshots_ex = 32
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 0.1  # ps
+    ground_state_run_time = 4 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
@@ -347,7 +347,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 10  # ps
+    exc_run_time = 1  # ps
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # End Inputs
@@ -417,7 +417,7 @@ def main():
         n_states = 1
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
                              verbosity=verbosity, time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_exc, n_snapshots_ex, is_hpc)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc)
     if run_fluorescence_collection:
         accumulate_flu_spectra(n_trajectories=n_snapshots_gs)
 
