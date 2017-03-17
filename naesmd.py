@@ -377,6 +377,7 @@ def main():
 
     # Run the Ground State
     if run_ground_dynamics:
+        Print("!!!!!!!!!!!!!!!!!!!! Running Ground Dynamics !!!!!!!!!!!!!!!!!!!!")
         n_exc_states_propagate = 0
         exc_state_init = 0
         verbosity = 0
@@ -387,6 +388,7 @@ def main():
             coordinate_file = 'm1_md2.rst'
         run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
     if run_absorption_trajectories:
+        Print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
         # Now we want to take the original trajectory snapshots and run more trajectories
         # from those at the ground state
         n_exc_states_propagate = 0
@@ -396,6 +398,7 @@ def main():
                              time_step=time_step)
         run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc)
     if run_absorption_snapshots:
+        Print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
         # Once the ground state trajectory files are made, we need
         # to calculate snapshots the Si - S0 energies
         n_exc_states_propagate = 20
@@ -406,9 +409,11 @@ def main():
                              time_step=time_step)
         run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=n_snapshots_gs, n_frames=n_frames_abs, is_hpc=is_hpc)
     if run_absorption_collection:
+        Print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
         accumulate_abs_spectra(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
         clean_up_abs(n_snapshots_gs, n_frames_abs)
     if run_excited_state:
+        Print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
         # We take the original trajectory snapshots and run further trajectories
         # from those at the excited state
         n_exc_states_propagate = 15
@@ -419,6 +424,7 @@ def main():
                              verbosity=verbosity, time_step=time_step)
         run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc)
     if run_fluorescence_collection:
+        Print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
         accumulate_flu_spectra(n_trajectories=n_snapshots_gs)
 
     # Restore Original Inputs
