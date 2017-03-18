@@ -43,6 +43,7 @@ class InputCeon:
         if n_steps_to_print is not None:
             sed_inplace('input.ceon', 'out_data_steps=\d*', 'out_data_steps=' + str(n_steps_to_print))
             sed_inplace('md_qmmm_amb.in', 'ntwx=\s*\d*', 'ntwx=' + str(n_steps_to_print))
+            sed_inplace('md_qmmm_amb.in', 'ntpr=\s*\d*', 'ntpr=' + str(n_steps_to_print))
         if coordinates is not None:
             sed_global('input.ceon', '&coord(.|\s|\n)*?&endcoord', '&coord\n' + coordinates + '&endcoord')
         if exc_state_init is not None:
@@ -76,10 +77,13 @@ def run_naesmd(root_name):
     subprocess.run('rm coordinates*', shell=True)
 
 
-def run_nasqm(root_name, coordinate_file=None):
+def run_nasqm(root_name, coordinate_file=None, pmemd_available=False):
     cd_file = 'm1.inpcrd'
     if coordinate_file is not None:
         cd_file = coordinate_file
+    amber = 'sander'
+    if pmemd_available:
+        amber = 'pmemd'
     subprocess.run(['sander', '-O', '-i', 'md_qmmm_amb.in', '-o', root_name+'.out', '-c', cd_file, '-p',
                     'm1.prmtop', '-r', root_name+'.rst', '-x', root_name+'.nc'])
 
@@ -193,15 +197,15 @@ def create_restarts(input, output, step=None):
     else:
         ctc += 'trajin ' + input + '.nc' + ' 1 last\n'
     ctc += 'center :1\n' \
-           'image\n' \
            'trajout ' + output + ' restart\n' \
+           'image\n' \
            'run\n' \
            'quit'
     open('convert_to_crd.in', 'w').write(ctc)
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc):
+def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc, pmemd_available):
     restart_step = int(n_coordinates / n_snapshots)
     create_restarts(input=nasqm_root, output='ground_snap', step=restart_step)
     snap_restarts = []
@@ -219,10 +223,11 @@ def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapsho
         print("Please now submit run_abs_trajectories.sbatch, then run abs snapshots")
         sys.exit('Slurm submission exception')
     else:
-        run_amber_parallel(snap_trajectories, snap_restarts, number_processors=8)
+        run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=8)
 
 
 def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
+    pmemd_available = False # We require ESMD
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
         create_restarts(input=amber_restart, output=amber_restart)
@@ -240,7 +245,7 @@ def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
         print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
         sys.exit('Slurm submission exception')
     else:
-        run_amber_parallel(snap_singles, snap_restarts, number_processors=8)
+        run_amber_parallel(pmemd_available, snap_singles, snap_restarts, number_processors=8)
 
 
 def set_inpcrd(coordinates):
@@ -317,6 +322,7 @@ def main():
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
     is_hpc = False
+    pmemd_available = False
     run_ground_dynamics = False
     run_absorption_trajectories = False
     run_absorption_snapshots = False
@@ -332,14 +338,14 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 32
+    n_snapshots_ex = 320
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 4 # ps
+    ground_state_run_time = 0.1 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
@@ -347,7 +353,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 1  # ps
+    exc_run_time = 0.1  # ps
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # End Inputs
@@ -377,7 +383,7 @@ def main():
 
     # Run the Ground State
     if run_ground_dynamics:
-        Print("!!!!!!!!!!!!!!!!!!!! Running Ground Dynamics !!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!! Running Ground Dynamics !!!!!!!!!!!!!!!!!!!!")
         n_exc_states_propagate = 0
         exc_state_init = 0
         verbosity = 0
@@ -386,9 +392,9 @@ def main():
         coordinate_file = None
         if is_qmmm:
             coordinate_file = 'm1_md2.rst'
-        run_nasqm('nasqm_ground', coordinate_file=coordinate_file)
+        run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=pmemd_available)
     if run_absorption_trajectories:
-        Print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
         # Now we want to take the original trajectory snapshots and run more trajectories
         # from those at the ground state
         n_exc_states_propagate = 0
@@ -396,9 +402,9 @@ def main():
         verbosity = 0
         input_ceon.set_input(n_steps_abs, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc, pmemd_available=pmemd_available)
     if run_absorption_snapshots:
-        Print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
         # Once the ground state trajectory files are made, we need
         # to calculate snapshots the Si - S0 energies
         n_exc_states_propagate = 20
@@ -409,11 +415,11 @@ def main():
                              time_step=time_step)
         run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=n_snapshots_gs, n_frames=n_frames_abs, is_hpc=is_hpc)
     if run_absorption_collection:
-        Print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
         accumulate_abs_spectra(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
         clean_up_abs(n_snapshots_gs, n_frames_abs)
     if run_excited_state:
-        Print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
+        print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
         # We take the original trajectory snapshots and run further trajectories
         # from those at the excited state
         n_exc_states_propagate = 15
@@ -422,10 +428,10 @@ def main():
         n_states = 1
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
                              verbosity=verbosity, time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc, pmemd_available=False)
     if run_fluorescence_collection:
-        Print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
-        accumulate_flu_spectra(n_trajectories=n_snapshots_gs)
+        print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
+        accumulate_flu_spectra(n_trajectories=n_snapshots_ex)
 
     # Restore Original Inputs
     open('input.ceon', 'w').write(input_ceon_bac)
