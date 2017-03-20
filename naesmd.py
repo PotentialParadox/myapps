@@ -83,8 +83,8 @@ def run_nasqm(root_name, coordinate_file=None, pmemd_available=False):
         cd_file = coordinate_file
     amber = 'sander'
     if pmemd_available:
-        amber = 'pmemd'
-    subprocess.run(['sander', '-O', '-i', 'md_qmmm_amb.in', '-o', root_name+'.out', '-c', cd_file, '-p',
+        amber = 'pmemd.cuda'
+    subprocess.run([amber, '-O', '-i', 'md_qmmm_amb.in', '-o', root_name+'.out', '-c', cd_file, '-p',
                     'm1.prmtop', '-r', root_name+'.rst', '-x', root_name+'.nc'])
 
 
@@ -321,14 +321,15 @@ def main():
     # Begin Inputs
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
-    is_hpc = False
+    is_hpc = True
+    # PMEMD NOT YET WORKING SET TO FALSE
     pmemd_available = False
     run_ground_dynamics = False
-    run_absorption_trajectories = False
+    run_absorption_trajectories = True
     run_absorption_snapshots = False
     run_absorption_collection = False
-    run_excited_state = True
-    run_fluorescence_collection = True
+    run_excited_state = False
+    run_fluorescence_collection = False
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -338,14 +339,14 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 320
+    n_snapshots_ex = 32
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 0.1 # ps
+    ground_state_run_time = 300 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
@@ -353,7 +354,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 0.1  # ps
+    exc_run_time = 1  # ps
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # End Inputs
@@ -423,7 +424,7 @@ def main():
         # We take the original trajectory snapshots and run further trajectories
         # from those at the excited state
         n_exc_states_propagate = 15
-        exc_state_init = 1
+        exc_state_init = 9
         verbosity = 3
         n_states = 1
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
