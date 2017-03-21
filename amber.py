@@ -78,7 +78,7 @@ def moab_header(id, walltime):
                  '#MSUB -j oe\n' \
                  '#MSUB -V\n' \
                  '#MSUB -o traj_sub_' + str(id) + '.out.stdout\n' \
-                 '#MSUB -l procs=16\n' \
+                 '#MSUB -l nodes=1:ppn=16\n' \
                  '#MSUB -l walltime='+walltime+'\n\n' \
                  'module load intel/16.0.3 mkl/11.3.3 python\n' \
                  'source /users/dtracy/.bashrc\n' \
