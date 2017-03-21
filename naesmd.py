@@ -348,7 +348,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
-    abs_run_time = 1  # ps
+    abs_run_time = 0.1 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
