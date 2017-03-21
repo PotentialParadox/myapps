@@ -319,16 +319,16 @@ def main():
     # Begin Inputs
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
-    is_hpc = True
-    processor_per_node = 8
+    is_hpc = False
+    processor_per_node = 6
     # PMEMD NOT YET WORKING SET TO FALSE
     pmemd_available = False
     run_ground_dynamics = False
-    run_absorption_trajectories = True
+    run_absorption_trajectories = False
     run_absorption_snapshots = False
     run_absorption_collection = False
-    run_excited_state = False
-    run_fluorescence_collection = False
+    run_excited_state = True
+    run_fluorescence_collection = True
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -338,14 +338,14 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 32
+    n_snapshots_ex = 48
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.5  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 300 # ps
+    ground_state_run_time = 300  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption

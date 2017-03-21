@@ -85,12 +85,13 @@ def moab_header(id, walltime):
                  'cd ' + working_directory + '\n\n'
     return job_script
 
-def submit_job_script(id, begin_index, end_index):
+
+def submit_job_script(id, begin_index, end_index, root_name):
     job_script = moab_header(id, 300)
     job_script += 'for index in {' + str(begin_index) + '..' + str(end_index) + "}\n" \
                   'do\n' \
                   '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o nasqm_abs_$index.out -r ' \
-                  'nasqm_abs_$index.rst -p m1.prmtop -x nasqm_abs_$index.nc -c ground_snap.$index &\n' \
+                  + root_name + '$index.rst -p m1.prmtop -x '+root_name+'$index.nc -c ground_snap.$index &\n' \
                   'done\n' \
                   'wait\n'
     script_file = 'hpc_traj_' + str(id) + '.sh'
@@ -108,7 +109,7 @@ def run_hpc_trajectories(n_trajectories, n_processor_per_node, root_name):
         end_index = n_trajectories - extra_submissions
         begin_index = end_index - i * n_processor_per_node + 1
         # create_hpc_python_file(begin_index, end_index, n_processor_per_node, root_name)
-        submit_job_script(id, begin_index, end_index)
+        submit_job_script(id, begin_index, end_index, root_name)
     if extra_submissions != 0:
         id += 1
         end_index = n_trajectories
