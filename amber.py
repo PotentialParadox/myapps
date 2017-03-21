@@ -66,7 +66,12 @@ def create_hpc_python_file(begin_index, end_index, n_processors_per_node, root_n
     open('hpc_traj_'+str(begin_index)+'.py', 'w').write(file_string)
 
 
-def submit_job_script(id, begin_index, end_index):
+def moab_header(id, walltime):
+    # Provide walltime in seconds
+    hrs = int(walltime / 3600)
+    mins = int((walltime % 3600) / 60)
+    secs = int(walltime % 60)
+    walltime = '{:02d}:{:02d}:{:02d}'.format(hrs, mins, secs)
     working_directory = os.getcwd()
     job_script = '#!/bin/bash\n' \
                  '#MSUB -N traj_sub_' + str(id) + '.out\n' \
@@ -74,16 +79,20 @@ def submit_job_script(id, begin_index, end_index):
                  '#MSUB -V\n' \
                  '#MSUB -o traj_sub_' + str(id) + '.out.stdout\n' \
                  '#MSUB -l procs=16\n' \
-                 '#MSUB -l walltime=0:005:00\n\n'\
+                 '#MSUB -l walltime='+walltime+'\n\n' \
                  'module load intel/16.0.3 mkl/11.3.3 python\n' \
                  'source /users/dtracy/.bashrc\n' \
-                 'cd ' + working_directory + '\n\n' \
-                 'for index in {' + str(begin_index) + '..' + str(end_index) + "}\n" \
-                 'do\n' \
-                 '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o nasqm_abs_$index.out -r ' \
-                 'nasqm_abs_$index.rst -p m1.prmtop -x nasqm_abs_$index.nc -c ground_snap.$index &\n' \
-                 'done\n' \
-                 'wait\n'
+                 'cd ' + working_directory + '\n\n'
+    return job_script
+
+def submit_job_script(id, begin_index, end_index):
+    job_script = moab_header(id, 300)
+    job_script += 'for index in {' + str(begin_index) + '..' + str(end_index) + "}\n" \
+                  'do\n' \
+                  '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o nasqm_abs_$index.out -r ' \
+                  'nasqm_abs_$index.rst -p m1.prmtop -x nasqm_abs_$index.nc -c ground_snap.$index &\n' \
+                  'done\n' \
+                  'wait\n'
     script_file = 'hpc_traj_' + str(id) + '.sh'
     open(script_file, 'w').write(job_script)
     # subprocess.run(['msub', script_file])

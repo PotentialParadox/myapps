@@ -205,7 +205,7 @@ def create_restarts(input, output, step=None):
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc, pmemd_available):
+def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc, pmemd_available, ppn):
     restart_step = int(n_coordinates / n_snapshots)
     create_restarts(input=nasqm_root, output='ground_snap', step=restart_step)
     snap_restarts = []
@@ -218,10 +218,10 @@ def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapsho
             snap_restarts.append("ground_snap."+str(i+1))
             snap_trajectories.append(output_root + str(i + 1))
     if is_hpc:
-        run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=8,
+        run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=ppn,
                              root_name=output_root)
     else:
-        run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=8)
+        run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=ppn)
 
 
 def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
@@ -320,6 +320,7 @@ def main():
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
     is_hpc = True
+    processor_per_node = 8
     # PMEMD NOT YET WORKING SET TO FALSE
     pmemd_available = False
     run_ground_dynamics = False
@@ -401,7 +402,8 @@ def main():
         verbosity = 0
         input_ceon.set_input(n_steps_abs, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc, pmemd_available=pmemd_available)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc,
+                                   pmemd_available=pmemd_available, ppn=processor_per_node)
     if run_absorption_snapshots:
         print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
         # Once the ground state trajectory files are made, we need
@@ -427,7 +429,8 @@ def main():
         n_states = 1
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
                              verbosity=verbosity, time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc, pmemd_available=False)
+        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc,
+                                   pmemd_available=False, ppn=processor_per_node)
     if run_fluorescence_collection:
         print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
         accumulate_flu_spectra(n_trajectories=n_snapshots_ex)
