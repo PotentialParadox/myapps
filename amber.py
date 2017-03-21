@@ -90,13 +90,13 @@ def submit_job_script(id, begin_index, end_index, root_name):
     job_script = moab_header(id, 300)
     job_script += 'for index in {' + str(begin_index) + '..' + str(end_index) + "}\n" \
                   'do\n' \
-                  '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o nasqm_abs_$index.out -r ' \
+                  '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o '+root_name+'$index.out -r ' \
                   + root_name + '$index.rst -p m1.prmtop -x '+root_name+'$index.nc -c ground_snap.$index &\n' \
                   'done\n' \
                   'wait\n'
     script_file = 'hpc_traj_' + str(id) + '.sh'
     open(script_file, 'w').write(job_script)
-    # subprocess.run(['msub', script_file])
+    subprocess.run(['msub', script_file])
 
 def run_hpc_trajectories(n_trajectories, n_processor_per_node, root_name):
     # root_name is the root name of the output file restart file etc. not the input
