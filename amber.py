@@ -98,22 +98,24 @@ def submit_job_script(id, begin_index, end_index, root_name):
     open(script_file, 'w').write(job_script)
     subprocess.run(['msub', script_file])
 
+
 def run_hpc_trajectories(n_trajectories, n_processor_per_node, root_name):
     # root_name is the root name of the output file restart file etc. not the input
     # the input coordinates will be coming from ground_snap
     n_full_submissions = int(n_trajectories / n_processor_per_node)
     extra_submissions = int(n_trajectories % n_processor_per_node)
-    id = 0
+    job_id = 0
     for i in range(1, n_full_submissions+1):
-        id += 1
+        job_id += 1
         end_index = n_trajectories - extra_submissions
         begin_index = end_index - i * n_processor_per_node + 1
-        submit_job_script(id, begin_index, end_index, root_name)
+        submit_job_script(job_id, begin_index, end_index, root_name)
     if extra_submissions != 0:
-        id += 1
+        job_id += 1
         end_index = n_trajectories
         begin_index = end_index - extra_submissions
-        submit_job_script(id, begin_index, end_index)
+        submit_job_script(job_id, begin_index, end_index, root_name)
+
 
 def create_snapshot_slurm_script(script_file_name, n_trajectories, n_frames, root_name, crd_file='m1.inpcrd'):
     n_arrays = n_trajectories
