@@ -436,9 +436,10 @@ def main():
         accumulate_flu_spectra(n_trajectories=n_snapshots_ex)
 
     # Restore Original Inputs
-    open('input.ceon', 'w').write(input_ceon_bac)
-    open('md_qmmm_amb.in', 'w').write(md_qmmm_amb)
-    open('m1.inpcrd', 'w').write(m1_inpcrd)
+    if not is_hpc:
+        open('input.ceon', 'w').write(input_ceon_bac)
+        open('md_qmmm_amb.in', 'w').write(md_qmmm_amb)
+        open('m1.inpcrd', 'w').write(m1_inpcrd)
     input_ceon.write_log()
 
     end_time = time.time()

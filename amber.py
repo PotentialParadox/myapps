@@ -108,13 +108,11 @@ def run_hpc_trajectories(n_trajectories, n_processor_per_node, root_name):
         id += 1
         end_index = n_trajectories - extra_submissions
         begin_index = end_index - i * n_processor_per_node + 1
-        # create_hpc_python_file(begin_index, end_index, n_processor_per_node, root_name)
         submit_job_script(id, begin_index, end_index, root_name)
     if extra_submissions != 0:
         id += 1
         end_index = n_trajectories
         begin_index = end_index - extra_submissions
-        create_hpc_python_file(begin_index, end_index, n_processor_per_node, root_name)
         submit_job_script(id, begin_index, end_index)
 
 def create_snapshot_slurm_script(script_file_name, n_trajectories, n_frames, root_name, crd_file='m1.inpcrd'):
