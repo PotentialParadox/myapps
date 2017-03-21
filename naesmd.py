@@ -7,7 +7,7 @@ import os
 import numpy as np
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table
-from amber import run_amber_parallel, create_trajectory_slurm_script, create_snapshot_slurm_script
+from amber import run_amber_parallel, run_hpc_trajectories, create_snapshot_slurm_script
 
 
 def get_xyz_coordinates(file_stream):
@@ -218,10 +218,8 @@ def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapsho
             snap_restarts.append("ground_snap."+str(i+1))
             snap_trajectories.append(output_root + str(i + 1))
     if is_hpc:
-        create_trajectory_slurm_script(script_file_name='run_abs_trajectories.sbatch', n_arrays=n_coordinates,
-                                       root_name=output_root, crd_file='ground_snap')
-        print("Please now submit run_abs_trajectories.sbatch, then run abs snapshots")
-        sys.exit('Slurm submission exception')
+        run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=8,
+                             root_name=output_root)
     else:
         run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=8)
 
@@ -334,7 +332,7 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # further ground state dynamics
-    n_snapshots_gs = 4
+    n_snapshots_gs = 10
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -350,7 +348,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
-    abs_run_time = 0.1  # ps
+    abs_run_time = 1  # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
