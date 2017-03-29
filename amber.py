@@ -78,7 +78,7 @@ def moab_header(id, walltime):
                  '#MSUB -j oe\n' \
                  '#MSUB -V\n' \
                  '#MSUB -o traj_sub_' + str(id) + '.out.stdout\n' \
-                 '#MSUB -l nodes=1:ppn=16\n' \
+                 '#MSUB -l nodes=1:ppn=1\n' \
                  '#MSUB -l walltime='+walltime+'\n\n' \
                  'module load intel/16.0.3 mkl/11.3.3 python\n' \
                  'source /users/dtracy/.bashrc\n' \
@@ -87,7 +87,7 @@ def moab_header(id, walltime):
 
 
 def submit_job_script(id, begin_index, end_index, root_name):
-    job_script = moab_header(id, 300)
+    job_script = moab_header(id, 7200)
     job_script += 'for index in {' + str(begin_index) + '..' + str(end_index) + "}\n" \
                   'do\n' \
                   '  $AMBERHOME/bin/sander -O  -i md_qmmm_amb.in -o '+root_name+'$index.out -r ' \
