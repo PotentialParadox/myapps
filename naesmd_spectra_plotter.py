@@ -3,13 +3,16 @@ import matplotlib.pyplot as plt
 from scipy.interpolate import spline
 
 # Change here the title of the graph
-graph_title = "Distryrylbenzene in water box"
-# Change here the number of states
-number_states = 5
-# Change here the input file
-input_file = "spectra.output"
+graph_title = "Distryrylbenzene in vacuum"
+# Change here the number of states to display
+number_states = 2
+# Change here the file root for the file
+file_root = 'spectra_other'
 # Change to true if absorbance, false if fluorescence
-absorbance = False
+absorbance = True
+
+
+input_file = file_root + ".output"
 
 color_code = ['g', 'r', 'b', 'y', 'm']
 
@@ -24,7 +27,7 @@ ys = data[:, state_intensity_index_start:state_intensity_index_end]
 for i in range(number_states):
     y = ys[:, i]
     color = color_code[i]
-    label = 'S' + str(i)
+    label = 'S' + str(i+1)
     plt.plot(x, y, color=color, label=label)
 
 plt.xlabel('Wavelength, nm')
@@ -35,8 +38,8 @@ else:
 
 plt.ylabel(ylabel)
 plt.title(graph_title)
-plt.legend(loc=3)
-plt.savefig('spectra.png')
+plt.legend(loc=2)
+plt.savefig(file_root + '.png')
 plt.show()
 
 
