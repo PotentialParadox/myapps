@@ -205,7 +205,7 @@ def create_restarts(input, output, step=None):
     subprocess.run(['cpptraj', '-i', 'convert_to_crd.in'])
 
 
-def run_ground_state_snapshots(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc, pmemd_available, ppn):
+def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_snapshots, is_hpc, pmemd_available, ppn):
     restart_step = int(n_coordinates / n_snapshots)
     create_restarts(input=nasqm_root, output='ground_snap', step=restart_step)
     snap_restarts = []
@@ -392,7 +392,6 @@ def main():
 
     n_steps_exc = int(exc_run_time / time_step * 1000)
     n_steps_to_print_exc = 1
-    n_frames_exc = int(n_steps_exc / n_steps_to_print_exc)
 
     start_time = time.time()
 
@@ -417,8 +416,8 @@ def main():
         verbosity = 0
         input_ceon.set_input(n_steps_abs, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc,
-                                   pmemd_available=pmemd_available, ppn=processor_per_node)
+        run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc,
+                                       pmemd_available=pmemd_available, ppn=processor_per_node)
     if run_absorption_snapshots:
         print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
         # Once the ground state trajectory files are made, we need
@@ -443,8 +442,8 @@ def main():
         n_exc_states_propagate = n_exc_states_propagate_ex_param
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
                              verbosity=verbosity, time_step=time_step)
-        run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc,
-                                   pmemd_available=False, ppn=processor_per_node)
+        run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc,
+                                       pmemd_available=False, ppn=processor_per_node)
     if run_fluorescence_collection:
         print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
         exc_state_init = exc_state_init_ex_param
