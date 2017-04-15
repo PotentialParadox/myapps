@@ -120,7 +120,7 @@ def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
     for step in range(n_steps):
         for state in range(n_states):
             index = n_states * step + state
-            fo.write("{: 24.12f}{: 24.12f}".format(float(energies[index]), float(strengths[index])))
+            fo.write("{: 24.14E}{: 24.14E}".format(float(energies[index]), float(strengths[index])))
         fo.write('\n')
 
 
@@ -284,7 +284,8 @@ def accumulate_flu_spectra(n_trajectories, n_states=1):
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         input_stream = open(amber_outfile, 'r')
-        find_excited_energy(input_stream, output_stream, 1)
+        find_excited_energy(input_stream, output_stream, n_states)
+    output_stream.close()
     average_energies_time = open('nasqm_flu_energy_time.txt', 'w')
     data = np.loadtxt('nasqm_flu_energies.txt')
     subprocess.run(['rm', 'nasqm_flu_energies.txt'])
@@ -301,6 +302,7 @@ def accumulate_abs_spectra(n_trajectories, n_frames, n_states=20):
             amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
             input_stream = open(amber_out, 'r')
             find_nasqm_excited_state(input_stream, output_stream, n_states)
+    output_stream.close()
 
 
 def clean_up_abs(n_trajectories, n_frame):
@@ -323,19 +325,17 @@ def main():
     is_qmmm = True
     is_hpc = False
     processor_per_node = 8
-    # PMEMD NOT YET WORKING SET TO FALSE
-    pmemd_available = False
     run_ground_dynamics = False
     run_absorption_trajectories = False
-    run_absorption_snapshots = False
-    run_absorption_collection = False
+    run_absorption_snapshots = True
+    run_absorption_collection = True
     run_excited_state = False
-    run_fluorescence_collection = True
+    run_fluorescence_collection = False
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # further ground state dynamics
-    n_snapshots_gs = 10
+    n_snapshots_gs = 8
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -344,25 +344,28 @@ def main():
 
     # Change here the time step that will be shared by
     # each trajectory
-    time_step = 0.5  # fs
+    time_step = 0.2  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 300  # ps
+    ground_state_run_time = 300 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
-    abs_run_time = 0.1 # ps
+    abs_run_time = 1 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 0.1  # ps
+    exc_run_time = 1 # ps
 
     # Change here the number of excited states you 
     # with to have in the CIS calculation
-    n_exc_states_propagate = 15
+    n_exc_states_propagate_ex_param = 1
 
     # Change here the initial state
-    exc_state_init = 2
+    exc_state_init_ex_param = 1
+
+    # PMEMD NOT YET WORKING SET TO FALSE
+    pmemd_available = False
 
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     # End Inputs
@@ -381,8 +384,11 @@ def main():
     n_frames_gs = int(n_steps_gs / n_steps_to_print_gs)
 
     n_steps_abs = int(abs_run_time / time_step * 1000)
-    n_steps_to_print_abs = 50
-    n_frames_abs = int(n_steps_gs / n_steps_to_print_abs)
+    # We will do absorption calculation on all 
+    # steps printed out, so 1 would do absorption
+    # for each step during the run_abs_snapshot step
+    n_steps_to_print_abs = 50 
+    n_frames_abs = int(n_steps_abs / n_steps_to_print_abs)
 
     n_steps_exc = int(exc_run_time / time_step * 1000)
     n_steps_to_print_exc = 1
@@ -432,13 +438,16 @@ def main():
         print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
         # We take the original trajectory snapshots and run further trajectories
         # from those at the excited state
-        verbosity = 4
+        verbosity = 3
+        exc_state_init = exc_state_init_ex_param
+        n_exc_states_propagate = n_exc_states_propagate_ex_param
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
                              verbosity=verbosity, time_step=time_step)
         run_ground_state_snapshots('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc,
                                    pmemd_available=False, ppn=processor_per_node)
     if run_fluorescence_collection:
         print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
+        exc_state_init = exc_state_init_ex_param
         accumulate_flu_spectra(n_trajectories=n_snapshots_ex, n_states=exc_state_init)
 
     # Restore Original Inputs
@@ -452,3 +461,8 @@ def main():
     print("Job finished in %s seconds" % (end_time - start_time))
 
 main()
+# input_stream = open('naesmd.out', 'r')
+# output_stream = open('naesmd_energies.txt', 'w')
+# input_stream = open('nasqm_flu_16.out', 'r')
+# output_stream = open('nasqm_energies16.txt', 'w')
+# find_excited_energy(input_stream, output_stream, state=1)
