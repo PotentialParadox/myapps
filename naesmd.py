@@ -295,27 +295,36 @@ def accumulate_flu_spectra(n_trajectories, n_states=1):
         average_energies_time.write(str(e) + '\n')
 
 
-def accumulate_abs_spectra(n_trajectories, n_frames, n_states=20):
+def accumulate_abs_spectra(is_tully, n_snapshots_gs, n_frames, n_states=20):
     output_stream = open('spectra_abs.input', 'w')
-    for traj in range(n_trajectories):
-        for frame in range(n_frames):
-            amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
+    if is_tully:
+        for traj in range(n_trajectories):
+            for frame in range(n_frames):
+                amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
+                input_stream = open(amber_out, 'r')
+                find_nasqm_excited_state(input_stream, output_stream, n_states)
+    else:
+        for snap in range(n_snapshots_gs):
+            amber_out = 'nasqm_abs_' + str(snap+1) + '.out'
             input_stream = open(amber_out, 'r')
             find_nasqm_excited_state(input_stream, output_stream, n_states)
     output_stream.close()
 
 
-def clean_up_abs(n_trajectories, n_frame):
+def clean_up_abs(is_tully, n_trajectories, n_frame):
     base_name = 'nasqm_abs_'
-    for i in range(n_trajectories):
-        for j in range(n_frame):
-            traj = i + 1
-            frame= j + 1
-            subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.out'])
-            subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.nc'])
-            subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.rst'])
-            subprocess.run(['rm', base_name + str(traj) + '.' + str(frame)])
-
+    if is_tully:
+        for i in range(n_trajectories):
+            for j in range(n_frame):
+                traj = i + 1
+                frame= j + 1
+                subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.out'])
+                subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.nc'])
+                subprocess.run(['rm', base_name + str(traj) + '_' + str(frame) + '.rst'])
+                subprocess.run(['rm', base_name + str(traj) + '.' + str(frame)])
+    else:
+        subprocess.run('rm nasqm_abs_*', shell=True)
+        subprocess.run('rm ground_snap*', shell=True)
 
 
 def main():
@@ -324,18 +333,23 @@ def main():
     # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     is_qmmm = True
     is_hpc = False
+    is_tully = False
     processor_per_node = 8
-    run_ground_dynamics = False
+    run_ground_dynamics = True
     run_absorption_trajectories = False
-    run_absorption_snapshots = True
-    run_absorption_collection = True
+    run_absorption_snapshots = False
+    run_absorption_collection = False
     run_excited_state = False
     run_fluorescence_collection = False
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # further ground state dynamics
-    n_snapshots_gs = 8
+    n_snapshots_gs = 10000 
+
+    # Change here the number of states you wish to 
+    # calculate in the absorption singlpoint calculations
+    n_abs_exc = 5 
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
@@ -347,7 +361,7 @@ def main():
     time_step = 0.2  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 300 # ps
+    ground_state_run_time = 10 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
@@ -422,17 +436,21 @@ def main():
         print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
         # Once the ground state trajectory files are made, we need
         # to calculate snapshots the Si - S0 energies
-        n_exc_states_propagate = 20
+        n_exc_states_propagate = n_abs_exc
         exc_state_init = 0
         verbosity = 3
         n_steps = 0
         input_ceon.set_input(n_steps, n_exc_states_propagate, n_steps_to_print_abs, exc_state_init, verbosity=verbosity,
                              time_step=time_step)
-        run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=n_snapshots_gs, n_frames=n_frames_abs, is_hpc=is_hpc)
+        if is_tully:
+            run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=n_snapshots_gs, n_frames=n_frames_abs, is_hpc=is_hpc)
+        else:
+            run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', n_frames_gs, n_snapshots_gs, is_hpc,
+                                           pmemd_available=pmemd_available, ppn=processor_per_node)
     if run_absorption_collection:
         print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
-        accumulate_abs_spectra(n_trajectories=n_snapshots_gs, n_frames=n_frames_abs)
-        clean_up_abs(n_snapshots_gs, n_frames_abs)
+        accumulate_abs_spectra(is_tully, n_snapshots_gs=n_snapshots_gs, n_frames=n_frames_abs, n_states=n_abs_exc)
+        clean_up_abs(is_tully, n_snapshots_gs, n_frames_abs)
     if run_excited_state:
         print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
         # We take the original trajectory snapshots and run further trajectories
