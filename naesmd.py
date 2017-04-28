@@ -8,6 +8,7 @@ import numpy as np
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table
 from amber import run_amber_parallel, run_hpc_trajectories, create_snapshot_slurm_script
+from strip_solvent import stripper
 
 
 def get_xyz_coordinates(file_stream):
@@ -335,17 +336,17 @@ def main():
     is_hpc = False
     is_tully = False
     processor_per_node = 8
-    run_ground_dynamics = True
+    run_ground_dynamics = False
     run_absorption_trajectories = False
     run_absorption_snapshots = False
-    run_absorption_collection = False
-    run_excited_state = False
-    run_fluorescence_collection = False
+    run_absorption_collection = False 
+    run_excited_state = True
+    run_fluorescence_collection = True
 
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # further ground state dynamics
-    n_snapshots_gs = 10000 
+    n_snapshots_gs = 1000 
 
     # Change here the number of states you wish to 
     # calculate in the absorption singlpoint calculations
@@ -478,6 +479,8 @@ def main():
     print("Job finished in %s seconds" % (end_time - start_time))
 
 main()
+
+# stripper(n_ground_snaps=1000, n_atoms=48)
 # input_stream = open('naesmd.out', 'r')
 # output_stream = open('naesmd_energies.txt', 'w')
 # input_stream = open('nasqm_flu_16.out', 'r')
