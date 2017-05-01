@@ -34,7 +34,7 @@ class InputCeon:
                        coordinates, verbosity, periodic)
 
     def set_input(self, n_steps=None, n_exc_states_propagate=None, n_steps_to_print=None, exc_state_init=None,
-                  coordinates=None, verbosity=None, periodic=None, time_step=None):
+                  coordinates=None, verbosity=None, periodic=None, time_step=None, random_velocities=None):
         if n_steps is not None:
             sed_inplace('input.ceon', 'n_class_steps=\d+', 'n_class_steps=' + str(n_steps))
             sed_inplace('md_qmmm_amb.in', 'nstlim\s*=\s*\d+\.?\d*', 'nstlim='+str(n_steps))
@@ -63,6 +63,10 @@ class InputCeon:
             sed_inplace('md_qmmm_amb.in', 'ntx\s*=\s*\d+', 'ntx=1')
         if time_step is not None:
             sed_inplace('md_qmmm_amb.in', 'dt=\s*\d+\.?\d*', 'dt=' +str(time_step/1000))
+        if random_velocities is False:
+            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=1' +str(time_step/1000))
+        if random_velocities is True:
+            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=5' +str(time_step/1000))
         self.log += open('input.ceon', 'r').read()
 
     def write_log(self):
@@ -336,7 +340,7 @@ def main():
     is_hpc = False
     is_tully = False
     processor_per_node = 8
-    run_ground_dynamics = False
+    run_ground_dynamics = True
     run_absorption_trajectories = False
     run_absorption_snapshots = False
     run_absorption_collection = False 
@@ -355,14 +359,14 @@ def main():
     # Change here the number of snapshots you wish to take
     # from the initial ground state trajectory to run the
     # new excited state dynamics
-    n_snapshots_ex = 8
+    n_snapshots_ex = 16 
 
     # Change here the time step that will be shared by
     # each trajectory
     time_step = 0.2  # fs
 
     # Change here the runtime of the initial ground state MD
-    ground_state_run_time = 10 # ps
+    ground_state_run_time = 4 # ps
 
     # Change here the runtime for the the trajectories
     # used to create calculated the absorption
@@ -370,7 +374,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 1 # ps
+    exc_run_time = 8 # ps
 
     # Change here the number of excited states you 
     # with to have in the CIS calculation
@@ -425,7 +429,7 @@ def main():
     if run_absorption_trajectories:
         print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
         # Now we want to take the original trajectory snapshots and run more trajectories
-        # from those at the ground state
+        # using random velocities to make them different from each other
         n_exc_states_propagate = 0
         exc_state_init = 0
         verbosity = 0
@@ -460,7 +464,7 @@ def main():
         exc_state_init = exc_state_init_ex_param
         n_exc_states_propagate = n_exc_states_propagate_ex_param
         input_ceon.set_input(n_steps_exc, n_exc_states_propagate, n_steps_to_print_exc, exc_state_init,
-                             verbosity=verbosity, time_step=time_step)
+                             verbosity=verbosity, time_step=time_step, random_velocities=True)
         run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', n_frames_gs, n_snapshots_ex, is_hpc,
                                        pmemd_available=False, ppn=processor_per_node)
     if run_fluorescence_collection:
