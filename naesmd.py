@@ -374,7 +374,7 @@ def main():
 
     # Change here the runtime for the the trajectories
     # used to create calculated the fluorescence
-    exc_run_time = 8 # ps
+    exc_run_time = 1 # ps
 
     # Change here the number of excited states you 
     # with to have in the CIS calculation
