@@ -64,9 +64,9 @@ class InputCeon:
         if time_step is not None:
             sed_inplace('md_qmmm_amb.in', 'dt=\s*\d+\.?\d*', 'dt=' +str(time_step/1000))
         if random_velocities is False:
-            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=1' +str(time_step/1000))
+            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=1')
         if random_velocities is True:
-            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=5' +str(time_step/1000))
+            sed_inplace('md_qmmm_amb.in', 'ntx=\s*\d+\.?\d*', 'ntx=5')
         self.log += open('input.ceon', 'r').read()
 
     def write_log(self):
@@ -340,7 +340,7 @@ def main():
     is_hpc = False
     is_tully = False
     processor_per_node = 8
-    run_ground_dynamics = True
+    run_ground_dynamics = False
     run_absorption_trajectories = False
     run_absorption_snapshots = False
     run_absorption_collection = False 
@@ -473,11 +473,11 @@ def main():
         accumulate_flu_spectra(n_trajectories=n_snapshots_ex, n_states=exc_state_init)
 
     # Restore Original Inputs
-    if not is_hpc:
-        open('input.ceon', 'w').write(input_ceon_bac)
-        open('md_qmmm_amb.in', 'w').write(md_qmmm_amb)
-        open('m1.inpcrd', 'w').write(m1_inpcrd)
-    input_ceon.write_log()
+    # if not is_hpc:
+        # open('input.ceon', 'w').write(input_ceon_bac)
+        # open('md_qmmm_amb.in', 'w').write(md_qmmm_amb)
+        # open('m1.inpcrd', 'w').write(m1_inpcrd)
+    # input_ceon.write_log()
 
     end_time = time.time()
     print("Job finished in %s seconds" % (end_time - start_time))
