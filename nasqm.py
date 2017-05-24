@@ -123,12 +123,9 @@ def run_ground_state_dynamics(input_ceon, user_input):
     Run the ground state trajectory that will be used to generate initial geometries
     for future calculations
     '''
-    n_steps_gs = int(user_input.ground_state_run_time / user_input.time_step * 1000)
-    n_steps_to_print_gs = 50
-    print("!!!!!!!!!!!!!!!!!!!! Running Ground Dynamics !!!!!!!!!!!!!!!!!!!!")
-    input_ceon.set_n_steps(n_steps_gs)
+    input_ceon.set_n_steps(user_input.n_steps_gs)
     input_ceon.set_exc_state_propagate(0)
-    input_ceon.set_n_steps_to_print(n_steps_to_print_gs)
+    input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_gs)
     input_ceon.set_exc_state_init(0)
     input_ceon.set_verbosity(0)
     input_ceon.set_time_step(user_input.time_step)
@@ -138,7 +135,93 @@ def run_ground_state_dynamics(input_ceon, user_input):
         coordinate_file = 'm1_md2.rst'
     run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=False)
 
+
+def run_absorption_trajectories(input_ceon, user_input):
+    '''
+    Now we want to take the original trajectory snapshots and run more trajectories
+    using random velocities to make them different from each other
+    '''
+    print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
+    input_ceon.set_n_steps(user_input.n_steps_abs)
+    input_ceon.set_exc_state_propagate(0)
+    input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_abs)
+    input_ceon.set_exc_state_init(0)
+    input_ceon.set_verbosity(0)
+    input_ceon.set_time_step(user_input.time_step)
+    input_ceon.set_random_velocities(True)
+    run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', user_input.n_frames_gs,
+                                   user_input.n_snapshots_gs, user_input.is_hpc,
+                                   ppn=user_input.processors_per_node)
+
+
+def run_absorption_snapshots(input_ceon, user_input):
+    '''
+    Once the ground state trajectory file are made, we need can calculate the absorption
+    snapshots.
+    '''
+    print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
+    input_ceon.set_n_steps(0)
+    input_ceon.set_exc_state_propagate(user_input.n_abs_exc)
+    input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_abs)
+    input_ceon.set_exc_state_init(0)
+    input_ceon.set_verbosity(3)
+    input_ceon.set_time_step(user_input.time_step)
+    if user_input.is_tully:
+        run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=user_input.n_snapshots_gs,
+                          n_frames=user_input.n_frames_abs, is_hpc=user_input.is_hpc)
+    else:
+        run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', user_input.n_frames_gs,
+                                       user_input.n_snapshots_gs, user_input.is_hpc,
+                                       ppn=user_input.processors_per_node)
+
+
+def run_absorption_collection(user_input):
+    '''
+    Parse the output data from amber for absorption energies and create a spectra_abs.input
+    file
+    '''
+    print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
+    accumulate_abs_spectra(user_input.is_tully, n_snapshots_gs=user_input.n_snapshots_gs,
+                           n_frames=user_input.n_frames_abs, n_states=user_input.n_abs_exc)
+    # clean_up_abs(user_input.is_tully, user_input.n_snapshots_gs, user_input.n_frames_abs)
+
+
+def run_excited_state_trajectories(input_ceon, user_input):
+    '''
+    We take the original trajectory snapshots and run further trajectories
+    from those at the excited state
+    '''
+    print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
+    input_ceon.set_n_steps(user_input.n_steps_exc)
+    input_ceon.set_exc_state_propagate(user_input.n_exc_states_propagate_ex_param)
+    input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_exc)
+    input_ceon.set_exc_state_init(user_input.exc_state_init_ex_param)
+    input_ceon.set_verbosity(3)
+    input_ceon.set_time_step(user_input.time_step)
+    input_ceon.set_random_velocities(False)
+    run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', user_input.n_frames_gs,
+                                   user_input.n_snapshots_ex, user_input.is_hpc,
+                                   ppn=user_input.processors_per_node)
+
+
+def run_fluorescence_collection(user_input):
+    '''
+    Parse the output data from amber for fluorescene energies and create a spectra_flu.input
+    file
+    '''
+    print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
+    exc_state_init = user_input.exc_state_init_ex_param
+    accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init,
+                           time_delay=user_input.fluorescene_time_delay)
+    write_omega_vs_time(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
+    write_nasqm_flu_energie(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
+
+
 def main():
+    '''
+    The primary nasqm automation function call. All changable parameters can be
+    found in nasqm_user_input.py
+    '''
 
     user_input = UserInput()
 
@@ -150,80 +233,20 @@ def main():
     # Create the input_ceon object
     input_ceon = InputCeon(amber_input='md_qmmm_amb.in')
 
-
-    n_steps_abs = int(user_input.abs_run_time / user_input.time_step * 1000)
-    # We will do absorption calculation on all
-    # steps printed out, so 1 would do absorption
-    # for each step during the run_abs_snapshot step
-    n_steps_to_print_abs = 50
-    n_frames_abs = int(n_steps_abs / n_steps_to_print_abs)
-
-    n_steps_exc = int(user_input.exc_run_time / user_input.time_step * 1000)
-    n_steps_to_print_exc = 1
-
     start_time = time.time()
 
     if user_input.run_ground_state_dynamics:
         run_ground_state_dynamics(input_ceon, user_input)
     if user_input.run_absorption_trajectories:
-        print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Trajectories !!!!!!!!!!!!!!!!!!!!")
-        # Now we want to take the original trajectory snapshots and run more trajectories
-        # using random velocities to make them different from each other
-        n_steps_gs = int(user_input.ground_state_run_time / user_input.time_step * 1000)
-        n_steps_to_print_gs = 50
-        n_frames_gs = int(n_steps_gs / n_steps_to_print_gs)
-        input_ceon.set_n_steps(n_steps_abs)
-        input_ceon.set_exc_state_propagate(0)
-        input_ceon.set_n_steps_to_print(n_steps_to_print_abs)
-        input_ceon.set_exc_state_init(0)
-        input_ceon.set_verbosity(0)
-        input_ceon.set_time_step(user_input.time_step)
-        run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', n_frames_gs,
-                                       user_input.n_snapshots_gs, user_input.is_hpc,
-                                       ppn=user_input.processors_per_node)
+        run_absorption_trajectories(input_ceon, user_input)
     if user_input.run_absorption_snapshots:
-        print("!!!!!!!!!!!!!!!!!!!! Running Absorbance Snapshots !!!!!!!!!!!!!!!!!!!!")
-        # Once the ground state trajectory files are made, we need
-        # to calculate snapshots the Si - S0 energies
-        input_ceon.set_n_steps(0)
-        input_ceon.set_exc_state_propagate(user_input.n_abs_exc)
-        input_ceon.set_n_steps_to_print(n_steps_to_print_abs)
-        input_ceon.set_exc_state_init(0)
-        input_ceon.set_verbosity(3)
-        input_ceon.set_time_step(user_input.time_step)
-        if user_input.is_tully:
-            run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=user_input.n_snapshots_gs,
-                              n_frames=n_frames_abs, is_hpc=user_input.is_hpc)
-        else:
-            run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', n_frames_gs,
-                                           user_input.n_snapshots_gs, user_input.is_hpc,
-                                           ppn=user_input.processors_per_node)
+        run_absorption_snapshots(input_ceon, user_input)
     if user_input.run_absorption_collection:
-        print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
-        accumulate_abs_spectra(user_input.is_tully, n_snapshots_gs=user_input.n_snapshots_gs,
-                               n_frames=n_frames_abs, n_states=user_input.n_abs_exc)
-        clean_up_abs(user_input.is_tully, user_input.n_snapshots_gs, n_frames_abs)
+        run_absorption_collection(user_input)
     if user_input.run_excited_state_trajectories:
-        print("!!!!!!!!!!!!!!!!!!!! Running Excited States !!!!!!!!!!!!!!!!!!!!")
-        # We take the original trajectory snapshots and run further trajectories
-        # from those at the excited state
-        input_ceon.set_n_steps(n_steps_exc)
-        input_ceon.set_exc_state_propagate(user_input.n_exc_states_propagate_ex_param)
-        input_ceon.set_n_steps_to_print(n_steps_to_print_exc)
-        input_ceon.set_exc_state_init(user_input.exc_state_init_ex_param)
-        input_ceon.set_verbosity(3)
-        input_ceon.set_time_step(user_input.time_step)
-        input_ceon.set_random_velocities(True)
-        run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', n_frames_gs,
-                                       user_input.n_snapshots_ex, user_input.is_hpc,
-                                       ppn=user_input.processors_per_node)
+        run_excited_state_trajectories(input_ceon, user_input)
     if user_input.run_fluorescence_collection:
-        print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
-        exc_state_init = user_input.exc_state_init_ex_param
-        accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init,
-                               time_delay=user_input.fluorescene_time_delay)
-        write_omega_vs_time(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
-        write_nasqm_flu_energie(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
+        run_fluorescence_collection(user_input)
 
     # Restore Original Inputs
     if not user_input.is_hpc:

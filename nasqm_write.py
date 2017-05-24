@@ -62,9 +62,11 @@ def accumulate_abs_spectra(is_tully, n_snapshots_gs, n_frames, n_states=20):
                 amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
                 input_stream = open(amber_out, 'r')
                 find_nasqm_excited_state(input_stream, output_stream, n_states)
+                input_stream.close()
     else:
         for snap in range(n_snapshots_gs):
             amber_out = 'nasqm_abs_' + str(snap+1) + '.out'
             input_stream = open(amber_out, 'r')
             find_nasqm_excited_state(input_stream, output_stream, n_states)
+            input_stream.close()
     output_stream.close()
