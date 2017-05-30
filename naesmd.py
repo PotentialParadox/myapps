@@ -33,5 +33,5 @@ def run_naesmd_snapshots(root_name, n_coordinates, input_ceon):
         input_ceon.set_input(coordinates=coordinates)
         subprocess.run([str(os.getenv('NAESMDHOME') + '/sqmceonaesmd.exe'), 'input.ceon'],
                        stdout=file_out)
-        find_nasqm_excited_state(out_file, root_name+'_omegas')
-        find_nasqm_transition_dipole(out_file, root_name+'_dipoles')
+        find_nasqm_excited_state(file_in, file_out)
+        find_nasqm_transition_dipole(file_in, file_out)

@@ -4,11 +4,11 @@ Functions to parse amber output
 import re
 import numpy as np
 
-def find_dipoles(file):
+def find_dipoles(file_stream):
     '''
-    Retrun a numpy array of dipoles
+    Return a numpy array of dipoles
     '''
-    file_string = open(file, 'r').read()
+    file_string = file_stream.read()
     dipoles = re.compile(r"MM DIPOLE\s*\-?\d+\.\d+\s+\-?\d+\.\d+\s+\-?\d+.\d+\s+(\-?\d+\.\d+)")
     search_results = re.findall(dipoles, file_string)
     dipoles = np.zeros(len(search_results))
@@ -32,7 +32,7 @@ def get_num_atoms_amber_out(nasqm_root):
 def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
     '''
     Write the firt n_states excited states energies and strengths to the output stream
-    FIXME What units?
+    in eV
     '''
     p_omega = re.compile(r'Frequencies \(eV\) and Oscillator')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
@@ -47,7 +47,11 @@ def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
                 energies.append(search_results[0])
                 strengths.append(search_results[-1])
     n_steps = int(len(energies) / n_states)
-    for step in range(n_steps):
+    # NAESMD will run twice on the first iteration of a md simulation
+    # we only want to count the second one. During singlepoint calculations
+    # we don't need to worry about this.
+    begin_step = 1 if n_steps > 1 else 0
+    for step in range(begin_step, n_steps):
         for state in range(n_states):
             index = n_states * step + state
             output_stream.write("{: 24.14E}{: 24.14E}".format(float(energies[index]),
@@ -57,10 +61,9 @@ def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
 
 def find_excited_energy(input_stream, output_stream, state):
     '''
-    Write the total energies of the excited state
-    FIXME what units?
+    Write the total energies of the excited state in eV
     '''
-    p_energy = re.compile(r'Total energies of excited states')
+    p_energy = re.compile('Total energies of excited states')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     for line in input_stream:
         if re.search(p_energy, line):
@@ -71,18 +74,17 @@ def find_excited_energy(input_stream, output_stream, state):
                     output_stream.write("{: 24.14E}".format(float(search_results[0])) + '\n')
 
 
-def find_nasqm_transition_dipole(input_file, output_file, state=0):
+def find_nasqm_transition_dipole(input_stream, output_stream):
     '''
+    FIXME Write the transition dipoles to the output stream
     '''
-    f = open(input_file, 'r').read()
-    fo = open(output_file, 'w')
-    p_energy_block = re.compile('Omega.*\n\s+\d\s+(-?\d+\.\d+E?-?\d*\s*){5}')
-    p_float = '-?\d+\.\d+E?-?\d*'
-    m = re.findall(p_energy_block, f)
+    p_energy_block = re.compile(r'Omega.*\n\s+\d\s+(-?\d+\.\d+E?-?\d*\s*){5}')
+    p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
+    search_results = re.findall(p_energy_block, input_stream)
     dipole_array = []
-    for i in m:
-        n = re.findall(p_float, i)
-        dipole_array.append(float(n[0]))
-    for i, d in enumerate(dipole_array):
+    for i in search_results:
+        other_results = re.findall(p_float, i)
+        dipole_array.append(float(other_results[0]))
+    for i, dipole in enumerate(dipole_array):
         if i % 2 != 0:
-            fo.write(str(d) + '\n')
+            output_stream.write(str(dipole) + '\n')

@@ -2,19 +2,70 @@
 Functions that write outputs of the NASQM script
 """
 import subprocess
+import io
 import numpy as np
 from amber_out import find_nasqm_excited_state, find_excited_energy
 
-def accumulate_flu_spectra(n_trajectories, n_states=1, time_delay=0):
+
+def numpy_to_specta_string(numpy_data):
+    '''
+    Converts a numpy array into the string used in spectra.input files
+    '''
+    string_output = ''
+    for data in numpy_data:
+        string_output += "{: 24.14E}{: 24.14E}".format(data[0], data[1]) + "\n"
+    return string_output
+
+
+def strip_timedelay_flu_spectra(spectra_string, n_trajectories, time_step, time_delay):
+    '''
+    Remove the data from the equilibration time given by time_delay
+    Time is in fs
+    '''
+    data = np.fromstring(spectra_string, sep=' ')
+    n_rows = int(len(data) / 2)
+    n_elements_traj = int(n_rows / n_trajectories)
+    n_columns = 2
+    data = data.reshape((n_rows, n_columns))
+    n_rows_to_remove_traj = int(time_delay / time_step)
+    n_rows_to_remove = n_rows_to_remove_traj * n_trajectories
+    n_rows_data2 = n_rows - n_rows_to_remove
+    if n_rows_data2 < 0:
+        raise ValueError('Time delay greater than the excited state runtime.')
+    data2 = np.zeros((n_rows_data2, n_columns))
+    data2_ri = 0
+    for i, data_point in enumerate(data):
+        if i % n_elements_traj >= n_rows_to_remove_traj:
+            data2[data2_ri][:] = data_point[:]
+            data2_ri += 1
+    return numpy_to_specta_string(data2)
+
+
+def accumulate_flu_spectra(n_trajectories):
     """
     Create the spectra_flu.input file using the nasqm_flu_* files
     """
-    output_stream = open('spectra_flu.input', 'w')
+    n_states = 1
+    output_stream = io.StringIO()
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         input_stream = open(amber_outfile, 'r')
         find_nasqm_excited_state(input_stream, output_stream, n_states=n_states)
+    output_string = output_stream.getvalue()
     output_stream.close()
+    return output_string
+
+
+def write_spectra_flu_input(user_input):
+    '''
+    Writes the approriately formatted data to spectra_flu.input.
+    Use hist_spectra_lifetime, and naesmd_spectra_plotter to get the spectra.
+    '''
+    fluor_string = accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex)
+    stripped_fl_string = strip_timedelay_flu_spectra(fluor_string, user_input.n_snapshots_ex,
+                                                     user_input.time_step,
+                                                     user_input.fluorescene_time_delay)
+    open('spectra_flu.input', 'w').write(stripped_fl_string)
 
 
 def write_omega_vs_time(n_trajectories, n_states=1):

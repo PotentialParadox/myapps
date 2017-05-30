@@ -7,10 +7,10 @@ You'll find the parameters to change in the file nasqm_user_input.py
 import sys
 import time
 import subprocess
-from amber import run_amber_parallel, run_hpc_trajectories, create_snapshot_slurm_script
+from amber import run_amber_parallel
 from inputceon import InputCeon
-from nasqm_write import (accumulate_abs_spectra, write_omega_vs_time, accumulate_flu_spectra,
-                         write_nasqm_flu_energie)
+from nasqm_write import (accumulate_abs_spectra, write_omega_vs_time,
+                         write_nasqm_flu_energie, write_spectra_flu_input)
 from nasqm_user_input import UserInput
 
 
@@ -66,15 +66,18 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
         for i in range(n_snapshots):
             snap_restarts.append("ground_snap."+str(i+1))
             snap_trajectories.append(output_root + str(i + 1))
-    if is_hpc:
-        run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=ppn,
-                             root_name=output_root)
-    else:
-        pmemd_available = False
-        run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=ppn)
+    # if is_hpc:
+    #     run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=ppn,
+    #                          root_name=output_root)
+    # else:
+    pmemd_available = False
+    run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=ppn)
 
 
 def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
+    '''
+    Run snapshots on the nasqm_abs_* ground state trajectory runs
+    '''
     pmemd_available = False # We require ESMD
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
@@ -87,14 +90,14 @@ def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
         for frame in range(n_frames):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
-    if is_hpc:
-        create_snapshot_slurm_script(script_file_name='run_abs_snapshot.sbatch',
-                                     n_trajectories=n_trajectories, n_frames=n_frames,
-                                     root_name=output_root, crd_file=output_root)
-        print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
-        sys.exit('Slurm submission exception')
-    else:
-        run_amber_parallel(pmemd_available, snap_singles, snap_restarts, number_processors=8)
+    # if is_hpc:
+    #     create_snapshot_slurm_script(script_file_name='run_abs_snapshot.sbatch',
+    #                                  n_trajectories=n_trajectories, n_frames=n_frames,
+    #                                  root_name=output_root, crd_file=output_root)
+    #     print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
+    #     sys.exit('Slurm submission exception')
+    # else:
+    run_amber_parallel(pmemd_available, snap_singles, snap_restarts, number_processors=8)
 
 
 
@@ -211,8 +214,7 @@ def run_fluorescence_collection(user_input):
     '''
     print("!!!!!!!!!!!!!!!!!!!! Parsing Fluorescences !!!!!!!!!!!!!!!!!!!!")
     exc_state_init = user_input.exc_state_init_ex_param
-    accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init,
-                           time_delay=user_input.fluorescene_time_delay)
+    write_spectra_flu_input(user_input)
     write_omega_vs_time(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
     write_nasqm_flu_energie(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
 

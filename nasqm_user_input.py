@@ -8,23 +8,31 @@ class UserInput:
     '''
     def __init__(self):
         # Change here whether your simulation is qmmm
-        self.is_qmmm = False
+        self.is_qmmm = True
         # Change here whether you are working on your personal computer
         # or an HPC with SLUM
         self.is_hpc = False
         # Are you performing tully surface hopping
         self.is_tully = False
+        # How many nodes will you be working on?
+        self.number_nodes = 1
         # How many processors will be on a node?
         self.processors_per_node = 8
+        # How much memory per node
+        self.memory_per_node = "2000mb"
+        # What is the maximum amount of jobs you want to run at once?
+        self.max_jobs = 4
+        # What do you want to set as your default walltime?
+        self.walltime = "01:00:00"
         # Do you want to run ground state dynamics
-        self.run_ground_state_dynamics = False
+        self.run_ground_state_dynamics = True
         # Do you want to run the trajectories used for the abjorption specta
-        self.run_absorption_trajectories = True
+        self.run_absorption_trajectories = False
         # Do you want to run the single point snapshots from these
         # absorption spectra trajectories?
         self.run_absorption_snapshots = False
         # Do you want to collect the data from the absorption calculations?
-        self.run_absorption_collection = True
+        self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
         self.run_excited_state_trajectories = True
         # Do you want to collect the data from the exctied state trajectory
@@ -38,7 +46,7 @@ class UserInput:
 
         # Change here the number of states you wish to
         # calculate in the absorption singlpoint calculations
-        self.n_abs_exc = 1
+        self.n_abs_exc = 5
 
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
@@ -50,7 +58,7 @@ class UserInput:
         self.time_step = 0.5  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 0.5 # ps
+        self.ground_state_run_time = 10 # ps
 
         # Change here how often you want to print the ground state trajectory
         self.n_steps_to_print_gs = 50
@@ -64,7 +72,7 @@ class UserInput:
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 0.5 # ps
+        self.exc_run_time = 10 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation
@@ -80,7 +88,7 @@ class UserInput:
         # from jumping from the ground state to the excited state.
         # We don't want to include this data in the calculation
         # of the fluorescence. We therefore set a time delay.
-        self.fluorescene_time_delay = 1 # PS
+        self.fluorescene_time_delay = 2000 # fs
 
         ## Derived Values
         self.n_steps_gs = int(self.ground_state_run_time / self.time_step * 1000)
@@ -92,4 +100,6 @@ class UserInput:
         self.n_frames_abs = int(self.n_steps_abs / self.n_steps_to_print_abs)
         self.n_steps_exc = int(self.exc_run_time / self.time_step * 1000)
 
-
+        self.user_email = "dtracy.uf@gmail.com"
+        # Additive Choice: 1-Begin, 2-End, 4-Fail
+        self.email_options = 3
