@@ -153,9 +153,7 @@ def run_absorption_trajectories(input_ceon, user_input):
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(True)
     run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', user_input.n_frames_gs,
-                                   user_input.n_snapshots_gs, user_input.is_hpc,
-                                   ppn=user_input.processors_per_node)
-
+                                   user_input.n_snapshots_gs, user_input)
 
 def run_absorption_snapshots(input_ceon, user_input):
     '''
@@ -174,9 +172,7 @@ def run_absorption_snapshots(input_ceon, user_input):
                           n_frames=user_input.n_frames_abs, is_hpc=user_input.is_hpc)
     else:
         run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', user_input.n_frames_gs,
-                                       user_input.n_snapshots_gs, user_input.is_hpc,
-                                       ppn=user_input.processors_per_node)
-
+                                       user_input.n_snapshots_gs, user_input)
 
 def run_absorption_collection(user_input):
     '''
@@ -203,9 +199,7 @@ def run_excited_state_trajectories(input_ceon, user_input):
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
     run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', user_input.n_frames_gs,
-                                   user_input.n_snapshots_ex, user_input.is_hpc,
-                                   ppn=user_input.processors_per_node)
-
+                                   user_input.n_snapshots_ex, user_input)
 
 def run_fluorescence_collection(user_input):
     '''

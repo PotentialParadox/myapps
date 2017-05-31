@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=MyJob # A name for your job
-#SBATCH --output=MyJob.output # Output File
-#SBATCH --error=MyJob-#j.err #Error File
+#SBATCH --output=MyJob-%j.output # Output File
+#SBATCH --error=MyJob-%j.err #Error File
 #SBATCH --mail-user=dtracy.uf@gmail.com # Email address
 #SBATCH --mail-type=BEGIN,END # What emails you want
 #SBATCH --nodes=1 #No. computers requested
