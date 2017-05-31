@@ -4,7 +4,6 @@ created by Dustin Tracy (dtracy.uf@gmail.com)
 This program is used to automate NASQM job creations.
 You'll find the parameters to change in the file nasqm_user_input.py
 '''
-import sys
 import time
 import subprocess
 from amber import run_amber_parallel
@@ -47,31 +46,32 @@ def create_restarts(amber_input, output, step=None):
 
 
 def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_snapshots,
-                                   is_hpc, ppn):
+                                   user_input):
     '''
     Run n_snapshots simulations using nasqm_root as the basis for the generation of the
     inital geometries. This will output data to output_root+str(i). Restart_step is the
     number of steps between the snapshots of the trajectory you are using as your geometries
-    generator. Generally you will want to make the restart step to be the number of prints from
-    this trajectory divided by the number of tajectories you wish to perform
+    generator.
     '''
     restart_step = int(n_coordinates / n_snapshots)
-    create_restarts(amber_input=nasqm_root, output='ground_snap', step=restart_step)
+    amber_restart_root = 'ground_snap'
+    create_restarts(amber_input=nasqm_root, output=amber_restart_root, step=restart_step)
     snap_restarts = []
     snap_trajectories = []
     if n_snapshots == 1:
-        snap_restarts.append("ground_snap")
+        snap_restarts.append(amber_restart_root)
         snap_trajectories.append(output_root + '1')
     else:
         for i in range(n_snapshots):
-            snap_restarts.append("ground_snap."+str(i+1))
+            snap_restarts.append(amber_restart_root+"."+str(i+1))
             snap_trajectories.append(output_root + str(i + 1))
     # if is_hpc:
     #     run_hpc_trajectories(n_trajectories=n_snapshots, n_processor_per_node=ppn,
     #                          root_name=output_root)
     # else:
     pmemd_available = False
-    run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts, number_processors=ppn)
+    run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts,
+                       number_processors=user_input.processors_per_node)
 
 
 def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
