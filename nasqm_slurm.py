@@ -22,13 +22,17 @@ def run_hpc_trajectories(user_input, restart_root, output_root, title, n_traject
     n_arrays = math.ceil(n_trajectories/user_input.processors_per_node)
     slurm_header = create_slurm_header(user_input)
     command = "module load intel/2016.0.109\n\n"
-    command += "for i in {1.."+n_arrays+"}\n" \
+    command += "for i in {1.."+str(n_arrays)+"}\n" \
                "do\n" \
-               '    multiplier="$((${SLURM_ARRAY_TASK_ID}))' \
-    command += "$AMBERHOME/bin/sander - -i md_qmmm_amb.in -o "+output_root\
-               +"${SLURM_ARRAY_TASK_ID}.out -c " \
-              +restart_root+".${SLURM_ARRAY_TASK_ID} -p m1.prmtop -r " \
-              +output_root+"${SLURM_ARRAY_TASK_ID}.rst -x "+output_root+"${SLURM_ARRAY_TASK_ID}.nc"
+               '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))\n' \
+               '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))\n' \
+               '    ID="$((${FIRST_COUNT} + ${i}))\n'
+    command += "    $AMBERHOME/bin/sander -i md_qmmm_amb.in -o " + output_root \
+              + "${ID}.out -c " \
+              + restart_root+".${ID} -p m1.prmtop -r " \
+              + output_root+ "${ID}.rst -x "+output_root \
+              +"${ID}.nc\n" \
+              +"done"
     slurm_script = Slurm(slurm_header)
     slurm_file = slurm_script.create_slurm_script(command, title, n_arrays)
     print(slurm_file)
