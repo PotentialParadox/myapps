@@ -51,6 +51,22 @@ class Slurm:
                 '\n' + command
         return job_script
 
+def wait_for_job_finish(slurm_id):
+    '''
+    Loop until job finishes
+    '''
+    p_id = re.compile(slurm_id)
+    condition = True
+    while condition:
+        command = "squeue -j " + slurm_id
+        proc = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE,
+                                stderr=subprocess.PIPE, universal_newlines=True)
+        stdout_value, stderr_value = proc.communicate()
+        if stderr_value == "Error":
+            return None
+        if not re.search(p_id, stdout_value):
+            condition = False
+
 def run_slurm(slurm_script):
     '''
     Run the slurm script
@@ -62,4 +78,7 @@ def run_slurm(slurm_script):
                             stderr=subprocess.PIPE, universal_newlines=True)
     stdout_value, stderr_value = proc.communicate()
     slurm_id = str(re.findall(p_id, stdout_value)[0])
-    print(slurm_id, stderr_value)
+    if stderr_value == "Error":
+        return None
+    wait_for_job_finish(slurm_id)
+    print("Job Finished")
