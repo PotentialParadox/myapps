@@ -2,6 +2,7 @@
 A wrapper to slurm
 '''
 import subprocess
+import time
 import re
 
 class Slurm:
@@ -66,6 +67,7 @@ def wait_for_job_finish(slurm_id):
             return None
         if not re.search(p_id, stdout_value):
             condition = False
+        time.sleep(5)
 
 def run_slurm(slurm_script):
     '''
