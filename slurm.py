@@ -1,6 +1,8 @@
 '''
 A wrapper to slurm
 '''
+import subprocess
+import re
 
 class Slurm:
     '''
@@ -26,7 +28,6 @@ class Slurm:
         }
         self.email_preferences = switcher.get(self.header['email_options'])
 
-
     def create_slurm_script(self, command, title=None, n_arrays=1):
         '''
         Return the slurm job script
@@ -49,3 +50,15 @@ class Slurm:
                 '#SBATCH --time='+self.header['walltime']+' #Walltime\n' \
                 '\n' + command
         return job_script
+
+def run_slurm(slurm_script):
+    '''
+    Run the slurm script
+    '''
+    open('nasqm.sbatch', 'w').write(slurm_script)
+    p_id = re.compile(r'\d+')
+    proc = subprocess.Popen(['sbatch', 'nasqm.sbatch'], shell=True, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, universal_newlines=True)
+    stdout_value, stderr_value = proc.communicate()
+    slurm_id = str(re.findall(p_id, stdout_value))
+    print(slurm_id, stderr_value)

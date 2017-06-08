@@ -139,7 +139,6 @@ def run_ground_state_dynamics(input_ceon, user_input):
         coordinate_file = 'm1_md2.rst'
     run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=False)
 
-
 def run_absorption_trajectories(input_ceon, user_input):
     '''
     Now we want to take the original trajectory snapshots and run more trajectories
