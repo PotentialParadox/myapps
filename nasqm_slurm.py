@@ -42,4 +42,5 @@ def run_hpc_trajectories(user_input, restart_root, output_root, title, n_traject
     slurm_script = Slurm(slurm_header)
     command = build_command(restart_root, output_root)
     slurm_file = slurm_script.create_slurm_script(command, title, n_arrays)
+    print("**************Running Slurm File*************")
     run_slurm(slurm_file)
