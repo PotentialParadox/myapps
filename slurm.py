@@ -55,7 +55,7 @@ def run_slurm(slurm_script):
     '''
     Run the slurm script
     '''
-    open('nasqm.sh', 'w').write(slurm_script)
+    open('nasqm.sbatch', 'w').write(slurm_script)
     p_id = re.compile(r'\d+')
     print("Starting Subprocess")
     proc = subprocess.Popen(['sbatch nasqm.sbatch'], shell=True, stdout=subprocess.PIPE,
