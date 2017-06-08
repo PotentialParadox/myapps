@@ -19,7 +19,7 @@ def build_command(restart_root, output_root):
     Returns the command for the slurm script
     '''
     command = "module load intel/2016.0.109\n\n"
-    command += "for i in $(seq 1 ${SLURM_CPUS_ON_NODE)\n" \
+    command += "for i in $(seq 1 ${SLURM_CPUS_ON_NODE})\n" \
                "do\n" \
                '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))"\n' \
                '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))"\n' \
@@ -42,5 +42,4 @@ def run_hpc_trajectories(user_input, restart_root, output_root, title, n_traject
     slurm_script = Slurm(slurm_header)
     command = build_command(restart_root, output_root)
     slurm_file = slurm_script.create_slurm_script(command, title, n_arrays)
-    print("**************Running Slurm File*************")
     run_slurm(slurm_file)
