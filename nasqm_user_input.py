@@ -11,7 +11,7 @@ class UserInput:
         self.is_qmmm = True
         # Change here whether you are working on your personal computer
         # or an HPC with SLUM
-        self.is_hpc = True
+        self.is_hpc = False
         # Are you performing tully surface hopping
         self.is_tully = False
         # How many nodes will you be working on?
@@ -25,16 +25,16 @@ class UserInput:
         # What do you want to set as your default walltime?
         self.walltime = "01:00:00"
         # Do you want to run ground state dynamics
-        self.run_ground_state_dynamics = False
+        self.run_ground_state_dynamics = True
         # Do you want to run the trajectories used for the abjorption specta
-        self.run_absorption_trajectories = True
+        self.run_absorption_trajectories = False
         # Do you want to run the single point snapshots from these
         # absorption spectra trajectories?
         self.run_absorption_snapshots = False
         # Do you want to collect the data from the absorption calculations?
         self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
-        self.run_excited_state_trajectories = False
+        self.run_excited_state_trajectories = True
         # Do you want to collect the data from the exctied state trajectory
         # calculations?
         self.run_fluorescence_collection = False
@@ -51,14 +51,14 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 4
+        self.n_snapshots_ex = 8
 
         # Change here the time step that will be shared by
         # each trajectory
         self.time_step = 0.5  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 4 # ps
+        self.ground_state_run_time = 10 # ps
 
         # Change here how often you want to print the ground state trajectory
         self.n_steps_to_print_gs = 50
@@ -72,7 +72,7 @@ class UserInput:
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 20 # ps
+        self.exc_run_time = 8 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation
