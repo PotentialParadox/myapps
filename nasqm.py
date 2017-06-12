@@ -139,7 +139,14 @@ def run_ground_state_dynamics(input_ceon, user_input):
     coordinate_file = None
     if user_input.is_qmmm:
         coordinate_file = 'm1_md2.rst'
-    run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=False)
+    if user_input.is_hpc:
+        output_root = "nasqm_ground"
+        number_trajectories = 1
+        slurm_files = slurm_trajectory_files(user_input, coordinate_file, output_root, output_root,
+                                             number_trajectories)
+        run_slurm(slurm_files)
+    else:
+        run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=False)
 
 def run_absorption_trajectories(input_ceon, user_input):
     '''
