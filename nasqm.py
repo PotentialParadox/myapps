@@ -11,7 +11,8 @@ from inputceon import InputCeon
 from nasqm_write import (accumulate_abs_spectra, write_omega_vs_time,
                          write_nasqm_flu_energie, write_spectra_flu_input)
 from nasqm_user_input import UserInput
-from nasqm_slurm import run_hpc_trajectories
+from nasqm_slurm import slurm_trajectory_files
+from slurm import run_slurm
 
 
 def run_nasqm(root_name, coordinate_file=None, pmemd_available=False):
@@ -67,8 +68,9 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
             snap_restarts.append(amber_restart_root+"."+str(i+1))
             snap_trajectories.append(output_root + str(i + 1))
     if user_input.is_hpc:
-        run_hpc_trajectories(user_input, 'ground_snap', output_root, output_root,
-                             n_snapshots)
+        slurm_files = slurm_trajectory_files(user_input, 'ground_snap', output_root, output_root,
+                                             n_snapshots)
+        run_slurm(slurm_files)
     else:
         pmemd_available = False
         run_amber_parallel(pmemd_available, snap_trajectories, snap_restarts,

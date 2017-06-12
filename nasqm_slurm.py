@@ -14,12 +14,12 @@ def create_slurm_header(user_input):
             'memory': user_input.memory_per_node, 'walltime': user_input.walltime,
             'max_jobs': user_input.max_jobs}
 
-def build_command(restart_root, output_root):
+def build_command(restart_root, output_root, n_trajectories):
     '''
     Returns the command for the slurm script
     '''
     command = "module load intel/2016.0.109\n\n"
-    command += "for i in $(seq 1 ${SLURM_CPUS_ON_NODE})\n" \
+    command += "for i in $(seq 1 " + str(n_trajectories) + ")\n" \
                "do\n" \
                '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))"\n' \
                '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))"\n' \
@@ -30,16 +30,30 @@ def build_command(restart_root, output_root):
               + output_root+ "${ID}.rst -x "+output_root \
               +"${ID}.nc\n" \
               +"done\n" \
-              +"wait"
+              +"wait\n"
     return command
 
-def run_hpc_trajectories(user_input, restart_root, output_root, title, n_trajectories):
+def slurm_trajectory_files(user_input, restart_root, output_root, title, n_trajectories):
     '''
     Run multiple sander trajectories over hpc
     '''
-    n_arrays = math.ceil(n_trajectories/user_input.processors_per_node)
+    n_arrays_max = math.floor(n_trajectories/user_input.processors_per_node)
+    n_trajectories_remaining = n_trajectories - n_arrays_max * user_input.processors_per_node
     slurm_header = create_slurm_header(user_input)
     slurm_script = Slurm(slurm_header)
-    command = build_command(restart_root, output_root)
-    slurm_file = slurm_script.create_slurm_script(command, title, n_arrays)
-    run_slurm(slurm_file)
+    slurm_script_max = None
+    slurm_script_nmax = None
+    if n_arrays_max != 0:
+        command = build_command(restart_root, output_root, user_input.processors_per_node)
+        slurm_script_max = slurm_script.create_slurm_script(command, title, n_arrays_max)
+    if n_trajectories_remaining != 0:
+        command = build_command(restart_root, output_root, n_trajectories_remaining)
+        slurm_script_nmax = slurm_script.create_slurm_script(command, title, 1)
+    return slurm_script_max, slurm_script_nmax
+
+def run_nasqm_slurm_files(slurm_files):
+    '''
+    Run the files produced by slurm_trajectory_files
+    '''
+    run_slurm(slurm_files[0])
+    run_slurm(slurm_files[1])

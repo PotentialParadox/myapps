@@ -75,12 +75,12 @@ def run_slurm(slurm_script):
     '''
     open('nasqm.sbatch', 'w').write(slurm_script)
     p_id = re.compile(r'\d+')
-    print("Starting Subprocess")
     proc = subprocess.Popen(['sbatch nasqm.sbatch'], shell=True, stdout=subprocess.PIPE,
                             stderr=subprocess.PIPE, universal_newlines=True)
     stdout_value, stderr_value = proc.communicate()
     slurm_id = str(re.findall(p_id, stdout_value)[0])
     if stderr_value == "Error":
         return None
+    print("Submitted Job: ", slurm_id)
     wait_for_job_finish(slurm_id)
-    print("Job Finished")
+    print("Job: ", slurm_id, "completed")

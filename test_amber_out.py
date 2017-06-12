@@ -25,30 +25,18 @@ def test_find_excited_energy():
     output_stream.close()
     assert output_string == '   -4.00985112234037E+03\n'
 
-def test_find_nasqm_excited_state():
+
+def test_find_nasqm_excited_state_1():
     '''
     Tests to see if we can find the omega and total oscillator strength of multiple states
     '''
-    test_string = "5 +++    3.772738023318104     0.23E-05 0.10E-04\n"\
-                  "6 +++    3.904739638623995     0.39E-06 0.10E-04\n"\
-                  "-------------------------------------------------\n"\
-                  "\n"\
-                  "Frequencies (eV) and Oscillator strengths (unitless)\n"\
-                  "       Omega            fx              fy              fz          ftotal\n"\
-                  " 1     3.04211901717783        0.814746171892645        0.209220955980193E-01  "\
-                  "  0.103966885259747E-03    0.835772234375924\n"\
-                  " 2     3.32932626530115        0.347146719311554E-02    0.129044151463899E-03  "\
-                  "  0.381772659210805E-04    0.363868861050052E-02\n"\
-                  "   3     3.69744792800296        0.155341793108174E-02    0.808029139455998E-03"\
-                  "  0.709446925075805E-03    0.307089399561354E-02\n"
-    input_stream = io.StringIO(test_string)
-    output_stream = io.StringIO()
-    amber_out.find_nasqm_excited_state(input_stream, output_stream, 2)
-    output_string = output_stream.getvalue()
-    output_stream.close()
-    assert output_string == '    3.04211901717783E+00    8.35772234375924E-01'\
-        '    3.32932626530115E+00    3.63868861050052E-03\n'
-
+    input_stream = open("tests/nasqm_flu_1.out")
+    result = amber_out.find_nasqm_excited_state(input_stream)
+    assert result == "    2.90923255131416E+00    9.08120295476811E-01\n" \
+        "    2.90923255131440E+00    9.08120295476795E-01\n" \
+        "    2.90576054156170E+00    9.12245042622513E-01\n" \
+        "    2.89718863282344E+00    9.17508693665317E-01\n" \
+        "    2.88542766911918E+00    9.23660450221756E-01\n"
 
 
 def test_find_dipole():
@@ -76,3 +64,13 @@ def test_find_dipole():
     input_stream = io.StringIO(test_string)
     result = amber_out.find_dipoles(input_stream)
     np.testing.assert_array_equal(result, np.array([81.458, 87.879]))
+
+
+def test_find_total_energies():
+    '''
+    Tests the search for the total energies
+    '''
+    input_stream = open("tests/nasqm_flu_1.out")
+    result = amber_out.find_total_energies(input_stream)
+    np.testing.assert_array_equal(result, np.array([167.2595, 167.3586, 167.9726,
+                                                    168.5343, 168.3066]))

@@ -23,5 +23,5 @@ def test_create_slurm_script():
     slurm_object = Slurm(SLURM_HEADER)
     job_script = slurm_object.create_slurm_script(command, "MyJob", 3)
     # open('slurm_test.txt', 'w').write(job_script)
-    test_script = str(open('slurm_test.txt', 'r').read())
+    test_script = str(open('tests/slurm_test.txt', 'r').read())
     assert job_script == test_script
