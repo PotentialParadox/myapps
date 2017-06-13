@@ -1,6 +1,7 @@
 '''
 Class in charge of controling the input files for NASQM
 '''
+import subprocess
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table
 
@@ -11,9 +12,21 @@ class InputCeon:
     """
     def __init__(self, amber_input):
         self.amber_input = amber_input
-        self.naesmd_init = open('input.ceon', 'r').read()
+        input_ceon_path = self.find_naesmd_init()
+        self.naesmd_init = open(input_ceon_path, 'r').read()
         self.amber_init = open(amber_input, 'r').read()
         self.log = ''
+
+    def find_naesmd_init(self):
+        '''
+        Return the full naesmd path
+        '''
+        a_split = self.amber_input.split('/')
+        d_split = a_split[:-1]
+        path = ""
+        for directory in d_split:
+            path += directory + "/"
+        return path + "input.ceon"
 
     def set_n_steps(self, n_steps):
         '''
@@ -104,6 +117,14 @@ class InputCeon:
         if is_random_velocities is True:
             sed_inplace(self.amber_input, r'ntx=\s*\d+\.?\d*', 'ntx=1')
 
+    def copy(self, file_name):
+        '''
+        Returns a copy into the new file_name
+        '''
+        old_file_string = open(self.amber_input, 'r').read()
+        open(file_name, 'w').write(old_file_string)
+        return InputCeon(file_name)
+
     def log_inputceon(self):
         '''
         log the inputceon file
@@ -153,3 +174,4 @@ def get_xyz_coordinates(file_stream):
                                                                  float(l_coords[2]),
                                                                  float(l_coords[3]))
     return coords
+
