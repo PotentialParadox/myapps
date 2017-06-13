@@ -39,8 +39,8 @@ def calculate_dielectric(file_name, V_meters, T_kelvon):
 
 FILE_NAME = 'md_qmmm_amb.out'
 TEMPERATURE = 300
-HEIGHT = 29.175E-10 # Meter
-WIDTH = 30.179E-10 # Meter
-LENGTH = 36.468E-10 # Meter
+HEIGHT = 36.62E-10 # Meter
+WIDTH = 37.693E-10 # Meter
+LENGTH = 45.684E-10 # Meter
 VOLUME = HEIGHT * WIDTH * LENGTH
 calculate_dielectric(FILE_NAME, VOLUME, TEMPERATURE)
