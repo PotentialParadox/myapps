@@ -1,10 +1,12 @@
 '''
 Units tests for the cpptraj wrappers for nasqm
 '''
+import os
 import pytest
 import numpy as np
 import nasqm_cpptraj
 import nasqm_user_input
+import inputceon
 
 @pytest.fixture
 def userinput():
@@ -14,6 +16,13 @@ def userinput():
     user_input = nasqm_user_input.UserInput()
     return user_input
 
+@pytest.fixture
+def input_ceon():
+    '''
+    Create an input_ceon object
+    '''
+    return inputceon.InputCeon('tests/md_qmmm_amb.in')
+
 def test_closest_script_3(userinput):
     '''
     Test to see if program is capable of building a script
@@ -22,7 +31,7 @@ def test_closest_script_3(userinput):
     userinput.number_nearest_solvents = 3
     snap_id = 1
     result = nasqm_cpptraj.closest_script(userinput, snap_id)
-    test = open('tests/nasqm_cpptraj_nearest_three.txt', 'r').read()
+    test = open('nasqm_cpptraj_nearest_three.txt', 'r').read()
     assert result == test
 
 def test_closest_script_4():
@@ -33,7 +42,7 @@ def test_closest_script_4():
     userinput.number_nearest_solvents = 4
     snap_id = 1
     result = nasqm_cpptraj.closest_script(userinput, snap_id)
-    test = open('tests/nasqm_cpptraj_nearest_four.txt', 'r').read()
+    test = open('nasqm_cpptraj_nearest_four.txt', 'r').read()
     assert result == test
 
 def test_closest_script_5_snap_2():
@@ -44,7 +53,7 @@ def test_closest_script_5_snap_2():
     userinput.number_nearest_solvents = 5
     snap_id = 2
     result = nasqm_cpptraj.closest_script(userinput, snap_id)
-    test = open('tests/nasqm_cpptraj_nearest_five.txt', 'r').read()
+    test = open('nasqm_cpptraj_nearest_five.txt', 'r').read()
     assert result == test
 
 def test_read_closest_3():
@@ -52,7 +61,7 @@ def test_read_closest_3():
     Test to determine if the read closest can read
     the output from the closest three script
     '''
-    closest_steam = open('tests/nasqm_cpptraj_closest_3.txt', 'r')
+    closest_steam = open('closest_1.txt', 'r')
     result = nasqm_cpptraj.read_closest(closest_steam)
     np.testing.assert_array_equal(result, np.array([400, 456, 152]))
 
@@ -61,6 +70,26 @@ def test_read_closest_4():
     Test to determine if the read closest can read
     the output from the closest 4 script
     '''
-    closest_steam = open('tests/nasqm_cpptraj_closest_4.txt', 'r')
+    closest_steam = open('closest_4.txt', 'r')
     result = nasqm_cpptraj.read_closest(closest_steam)
     np.testing.assert_array_equal(result, np.array([420, 560, 252, 397]))
+
+# def test_update_closest_1(input_ceon, userinput):
+#     '''
+#     Test to see if capable of updating one inputceon
+#     '''
+#     os.chdir("tests")
+#     test = [input_ceon.copy('test_inputceon.in')]
+#     nasqm_cpptraj.update_closest(userinput, test)
+#     result = test[0].get_mask()
+#     assert result == "':1,400,456,152'"
+
+# def test_update_closest_4(input_ceon, userinput):
+#     '''
+#     Test to see if capable of update one inputceon
+#     file but with 4 values
+#     '''
+#     test = [input_ceon.copy('test_inputceon.in')]
+#     nasqm_cpptraj.update_closest(userinput, test)
+#     result = test[0].get_mask()
+#     assert result == "':1,420,560,252,397'"

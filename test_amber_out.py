@@ -2,14 +2,18 @@
 Unit tests for amber_out
 '''
 import io
+import os
+import pytest
 import amber_out
 import numpy as np
 
+@pytest.mark.first
 def test_find_excited_energy():
     '''
     Only tests the first state
     FIXME need test for multiple states
     '''
+    os.chdir("tests")
     test_string = "   1     2.72992400735139        -3.72988788959956       -0.503715618713691"\
                 "0.101289783571188E-01     14.1658956897201\n"\
                 "Total energy of the ground state (eV,AU)\n" \
@@ -30,7 +34,7 @@ def test_find_nasqm_excited_state_1():
     '''
     Tests to see if we can find the omega and total oscillator strength of multiple states
     '''
-    input_stream = open("tests/nasqm_flu_1.out")
+    input_stream = open("nasqm_flu_1.out")
     result = amber_out.find_nasqm_excited_state(input_stream)
     assert result == "    2.90923255131416E+00    9.08120295476811E-01\n" \
         "    2.90923255131440E+00    9.08120295476795E-01\n" \
@@ -70,7 +74,7 @@ def test_find_total_energies():
     '''
     Tests the search for the total energies
     '''
-    input_stream = open("tests/nasqm_flu_1.out")
+    input_stream = open("nasqm_flu_1.out")
     result = amber_out.find_total_energies(input_stream)
     np.testing.assert_array_equal(result, np.array([167.2595, 167.3586, 167.9726,
                                                     168.5343, 168.3066]))

@@ -42,7 +42,7 @@ def test_build_command():
     output_root = "nasqm_abs_"
     n_trajectories = 16
     result = nasqm_slurm.build_command(restart_root, output_root, n_trajectories)
-    test = open("tests/nasqm_slurm_build_command.txt", 'r').read()
+    test = open("nasqm_slurm_build_command.txt", 'r').read()
     assert result == test
 
 
@@ -57,7 +57,7 @@ def test_slurm_trajectory_file_1(userinput):
     n_trajectories = 1
     result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
                                                output_root, title, n_trajectories)
-    test = open("tests/nasqm_slurm_1.txt", 'r').read()
+    test = open("nasqm_slurm_1.txt", 'r').read()
     assert result == (None, test)
 
 
@@ -72,7 +72,7 @@ def test_slurm_trajectory_file_16(userinput):
     n_trajectories = 16
     result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
                                                output_root, title, n_trajectories)
-    test = open("tests/nasqm_slurm_16.txt", 'r').read()
+    test = open("nasqm_slurm_16.txt", 'r').read()
     assert result == (test, None)
 
 
@@ -87,6 +87,6 @@ def test_slurm_trajectory_file_33(userinput):
     n_trajectories = 33
     result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
                                                output_root, title, n_trajectories)
-    test_0 = open("tests/nasqm_slurm_32.txt", 'r').read()
-    test_1 = open("tests/nasqm_slurm_1.txt", 'r').read()
+    test_0 = open("nasqm_slurm_32.txt", 'r').read()
+    test_1 = open("nasqm_slurm_1.txt", 'r').read()
     assert result == (test_0, test_1)

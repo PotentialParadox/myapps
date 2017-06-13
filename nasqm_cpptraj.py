@@ -46,3 +46,19 @@ def read_closest(input_stream):
     search_results = re.findall(p_id, closest_file)
     id_array = [float(id_string) for id_string in search_results]
     return np.array(id_array)
+
+def update_closest(user_input, input_ceon):
+    '''
+    Updates the masks to include the closest residues to the
+    molecule of interest
+    '''
+    for i in range(1, len(input_ceon)+1):
+        script = closest_script(user_input, i)
+        subprocess.run(['cpptraj', '-i', script])
+        closest_out = open("closest_{}.txt".format(i), 'r')
+        ids = read_closest(closest_out)
+        mask = "':1"
+        for index in ids:
+            mask += "," + str(index)
+        mask += "'"
+        input_ceon.set_maske(mask)
