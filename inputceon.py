@@ -19,19 +19,19 @@ class InputCeon:
         '''
         Sets the number of time-steps to do the simulation
         '''
-        sed_inplace('input.ceon', 'n_class_steps=\d+', 'n_class_steps=' + str(n_steps))
-        sed_inplace(self.amber_input, 'nstlim\s*=\s*\d+\.?\d*', 'nstlim='+str(n_steps))
+        sed_inplace('input.ceon', r'n_class_steps=\d+', 'n_class_steps=' + str(n_steps))
+        sed_inplace(self.amber_input, r'nstlim\s*=\s*\d+\.?\d*', 'nstlim='+str(n_steps))
         if n_steps == 0:
-            sed_inplace(self.amber_input, 'irest\s*=\s*\d+', 'irest=0')
-            sed_inplace(self.amber_input, 'ntx\s*=\s*\d+', 'ntx=1')
+            sed_inplace(self.amber_input, r'irest\s*=\s*\d+', 'irest=0')
+            sed_inplace(self.amber_input, r'ntx\s*=\s*\d+', 'ntx=1')
 
     def set_n_steps_to_print(self, n_steps_to_print):
         '''
         Set the number of steps between print outs
         '''
-        sed_inplace('input.ceon', 'out_data_steps=\d*', 'out_data_steps=' + str(n_steps_to_print))
-        sed_inplace(self.amber_input, 'ntwx=\s*\d*', 'ntwx=' + str(n_steps_to_print))
-        sed_inplace(self.amber_input, 'ntpr=\s*\d*', 'ntpr=' + str(n_steps_to_print))
+        sed_inplace('input.ceon', r'out_data_steps=\d*', 'out_data_steps=' + str(n_steps_to_print))
+        sed_inplace(self.amber_input, r'ntwx=\s*\d*', 'ntwx=' + str(n_steps_to_print))
+        sed_inplace(self.amber_input, r'ntpr=\s*\d*', 'ntpr=' + str(n_steps_to_print))
 
     def write_log(self):
         '''
@@ -65,40 +65,44 @@ class InputCeon:
         """
         Set the initial excited state
         """
-        sed_inplace('input.ceon', 'exc_state_init=\d*', 'exc_state_init=' + str(exc_state_init))
+        sed_inplace('input.ceon', r'exc_state_init=\d*', 'exc_state_init=' + str(exc_state_init))
 
     def set_verbosity(self, verbosity):
         """
         Set the verbosity for both amber and naesmd
         """
-        sed_inplace('input.ceon', 'verbosity=\d*', 'verbosity=' + str(verbosity))
-        sed_inplace(self.amber_input, 'verbosity\s*=\s*\d*', 'verbosity=' + str(verbosity))
+        sed_inplace('input.ceon', r'verbosity=\d*', 'verbosity=' + str(verbosity))
+        sed_inplace(self.amber_input, r'verbosity\s*=\s*\d*', 'verbosity=' + str(verbosity))
 
     def set_periodic(self, periodic):
         '''
         Sets the appropriate boundary condition values for priodic or non-periodic conditions
         '''
         if periodic is True:
-            sed_inplace(self.amber_input, 'ntb\s*=\s*\d+', 'ntb=2')
-            sed_inplace(self.amber_input, 'ntp\s*=\s*\d+', 'ntp=1')
+            sed_inplace(self.amber_input, r'ntb\s*=\s*\d+', 'ntb=2')
+            sed_inplace(self.amber_input, r'ntp\s*=\s*\d+', 'ntp=1')
+            sed_inplace(self.amber_input, r'qm_ewald\s*=\s*\d+', 'qm_ewald=1')
+            sed_inplace(self.amber_input, r'qm_pme\s*=\s*\d+', 'qm_pme=1')
         if periodic is False:
-            sed_inplace(self.amber_input, 'ntb\s*=\s*\d+', 'ntb=0')
-            sed_inplace(self.amber_input, 'ntp\s*=\s*\d+', 'ntp=0')
+            sed_inplace(self.amber_input, r'ntb\s*=\s*\d+', 'ntb=0')
+            sed_inplace(self.amber_input, r'ntp\s*=\s*\d+', 'ntp=0')
+            sed_inplace(self.amber_input, r'qm_ewald\s*=\s*\d+', 'qm_ewald=0')
+            sed_inplace(self.amber_input, r'qm_pme\s*=\s*\d+', 'qm_pme=0')
 
     def set_time_step(self, time_step):
         """
         Sets the timestep of the simulation
         """
-        sed_inplace(self.amber_input, 'dt=\s*\d+\.?\d*', 'dt=' +str(time_step/1000))
+        sed_inplace(self.amber_input, r'dt=\s*\d+\.?\d*', 'dt=' +str(time_step/1000))
 
     def set_random_velocities(self, is_random_velocities):
         '''
         Sets the appropriate values for random velocities
         '''
         if is_random_velocities is False:
-            sed_inplace(self.amber_input, 'ntx=\s*\d+\.?\d*', 'ntx=1')
+            sed_inplace(self.amber_input, r'ntx=\s*\d+\.?\d*', 'ntx=5')
         if is_random_velocities is True:
-            sed_inplace(self.amber_input, 'ntx=\s*\d+\.?\d*', 'ntx=5')
+            sed_inplace(self.amber_input, r'ntx=\s*\d+\.?\d*', 'ntx=1')
 
     def log_inputceon(self):
         '''
