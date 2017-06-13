@@ -21,7 +21,7 @@ def input_ceon():
     '''
     Create an input_ceon object
     '''
-    return inputceon.InputCeon('tests/md_qmmm_amb.in')
+    return inputceon.InputCeon('md_qmmm_amb.in')
 
 def test_closest_script_3(userinput):
     '''
@@ -61,7 +61,7 @@ def test_read_closest_3():
     Test to determine if the read closest can read
     the output from the closest three script
     '''
-    closest_steam = open('closest_1.txt', 'r')
+    closest_steam = open('nasqm_cpptraj_closest_1.txt', 'r')
     result = nasqm_cpptraj.read_closest(closest_steam)
     np.testing.assert_array_equal(result, np.array([400, 456, 152]))
 
@@ -70,26 +70,38 @@ def test_read_closest_4():
     Test to determine if the read closest can read
     the output from the closest 4 script
     '''
-    closest_steam = open('closest_4.txt', 'r')
+    closest_steam = open('nasqm_cpptraj_closest_4.txt', 'r')
     result = nasqm_cpptraj.read_closest(closest_steam)
     np.testing.assert_array_equal(result, np.array([420, 560, 252, 397]))
 
-# def test_update_closest_1(input_ceon, userinput):
-#     '''
-#     Test to see if capable of updating one inputceon
-#     '''
-#     os.chdir("tests")
-#     test = [input_ceon.copy('test_inputceon.in')]
-#     nasqm_cpptraj.update_closest(userinput, test)
-#     result = test[0].get_mask()
-#     assert result == "':1,400,456,152'"
+def test_update_closest_1(input_ceon, userinput):
+    '''
+    Test to see if capable of updating one inputceon
+    '''
+    userinput.number_nearest_solvents = 3
+    test = [input_ceon.copy('test_inputceon.in')]
+    nasqm_cpptraj.update_closest(userinput, test)
+    result = test[0].get_mask()
+    assert result == "':1,400,456,152'"
 
-# def test_update_closest_4(input_ceon, userinput):
-#     '''
-#     Test to see if capable of update one inputceon
-#     file but with 4 values
-#     '''
-#     test = [input_ceon.copy('test_inputceon.in')]
-#     nasqm_cpptraj.update_closest(userinput, test)
-#     result = test[0].get_mask()
-#     assert result == "':1,420,560,252,397'"
+def test_update_closest_4(input_ceon, userinput):
+    '''
+    Test to see if capable of update one inputceon
+    file but with 4 values
+    '''
+    userinput.number_nearest_solvents = 4
+    test = [input_ceon.copy('test_inputceon.in')]
+    nasqm_cpptraj.update_closest(userinput, test)
+    result = test[0].get_mask()
+    assert result == "':1,400,456,152,597'"
+
+def test_update_closet_multi(input_ceon, userinput):
+    '''
+    Test to see if capable of update two inputceon
+    files with 3 closest values
+    '''
+    userinput.number_nearest_solvents = 3
+    test = [input_ceon.copy('test_inputceon.in') for _ in range(2)]
+    nasqm_cpptraj.update_closest(userinput, test)
+    result = test[1].get_mask()
+    assert result == "':1,181,668,395'"

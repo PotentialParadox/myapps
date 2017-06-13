@@ -54,11 +54,13 @@ def update_closest(user_input, input_ceon):
     '''
     for i in range(1, len(input_ceon)+1):
         script = closest_script(user_input, i)
-        subprocess.run(['cpptraj', '-i', script])
+        script_file = "closest_{}.traj".format(i)
+        open(script_file, 'w').write(script)
+        subprocess.run(['cpptraj', '-i', script_file])
         closest_out = open("closest_{}.txt".format(i), 'r')
         ids = read_closest(closest_out)
         mask = "':1"
         for index in ids:
-            mask += "," + str(index)
+            mask += ",{0:.0f}".format(index)
         mask += "'"
-        input_ceon.set_maske(mask)
+        input_ceon[i-1].set_mask(mask)
