@@ -73,7 +73,6 @@ def test_slurm_trajectory_file_16(userinput):
     result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
                                                output_root, title, n_trajectories)
     test = open("tests/nasqm_slurm_16.txt", 'r').read()
-    open("result.txt", 'w').write(result[0])
     assert result == (test, None)
 
 
@@ -90,5 +89,4 @@ def test_slurm_trajectory_file_33(userinput):
                                                output_root, title, n_trajectories)
     test_0 = open("tests/nasqm_slurm_32.txt", 'r').read()
     test_1 = open("tests/nasqm_slurm_1.txt", 'r').read()
-    open("result.txt", 'w').write(result[1])
     assert result == (test_0, test_1)
