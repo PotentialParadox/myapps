@@ -25,7 +25,7 @@ class UserInput:
         # What do you want to set as your default walltime?
         self.walltime = "01:00:00"
         # Do you want to run ground state dynamics
-        self.run_ground_state_dynamics = True
+        self.run_ground_state_dynamics = False
         # Do you want to run the trajectories used for the abjorption specta
         self.run_absorption_trajectories = False
         # Do you want to run the single point snapshots from these
@@ -51,14 +51,14 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 8
+        self.n_snapshots_ex = 4
 
         # Change here the time step that will be shared by
         # each trajectory
-        self.time_step = 0.5  # fs
+        self.time_step = 0.2  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 10 # ps
+        self.ground_state_run_time = 2 # ps
 
         # Change here how often you want to print the ground state trajectory
         self.n_steps_to_print_gs = 50
@@ -89,6 +89,15 @@ class UserInput:
         # We don't want to include this data in the calculation
         # of the fluorescence. We therefore set a time delay.
         self.fluorescene_time_delay = 2000 # fs
+
+        # Solvent Settings
+        # This nasqm script will use cpptraj to include the nearest
+        # solvent molecule in the fluorescene and absorption calculations
+        # but not the initial ground state run.
+        # We will default to include all solvent residues within self.nearest_radius
+        # angstroms from the molecule of interest, if this is None, then
+        # we will use the nearest number of solvents
+        self.number_nearest_solvents = None
 
         ## Derived Values
         self.n_steps_gs = int(self.ground_state_run_time / self.time_step * 1000)
