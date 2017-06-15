@@ -6,9 +6,9 @@ You'll find the parameters to change in the file nasqm_user_input.py
 '''
 import time
 import subprocess
-from amber import run_amber_parallel
+from amber import Amber
 from inputceon import InputCeon
-from nasqm_write import (accumulate_abs_spectra, write_omega_vs_time,
+from nasqm_write import (write_omega_vs_time,
                          write_nasqm_flu_energie, write_spectra_flu_input,
                          write_spectra_abs_input)
 from nasqm_user_input import UserInput
@@ -67,9 +67,14 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
                                              n_snapshots)
         run_slurm(slurm_files)
     else:
-        pmemd_available = False
-        run_amber_parallel(pmemd_available, trajectory_roots, trajectory_roots, snap_restarts,
-                           number_processors=user_input.processors_per_node)
+        amber = Amber()
+        amber.input_files = ["{}.in".format(i) for i in trajectory_roots]
+        amber.output_files = ["{}.out".format(i) for i in trajectory_roots]
+        amber.coordinate_files = snap_restarts
+        amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
+        amber.restart_files = ["{}.rst".format(i) for i in trajectory_roots]
+        amber.export_files = ["{}.nc".format(i) for i in trajectory_roots]
+        amber.run_amber_parallel(user_input.processors_per_node)
 
 def create_amber_inputs_abs_snaps(n_trajectories, n_frames):
     '''
@@ -92,7 +97,6 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
     update_closest(user_input, input_ceons)
     for i in input_ceons:
         i.set_n_steps(0)
-    pmemd_available = False # We require ESMD
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
         create_restarts(amber_input=amber_restart, output=amber_restart)
@@ -104,8 +108,14 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
         for frame in range(n_frames):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
-    run_amber_parallel(pmemd_available, amber_inputs, snap_singles, snap_restarts,
-                       number_processors=8)
+    amber = Amber()
+    amber.input_files = ["{}.in".format(i) for i in amber_inputs]
+    amber.output_files = ["{}.out".format(i) for i in snap_singles]
+    amber.coordinate_files = snap_restarts
+    amber.prmtop_files = ["m1.prmtop"]*len(snap_singles)
+    amber.restart_files = ["{}.rst".format(i) for i in snap_singles]
+    amber.export_files = ["{}.nc".format(i) for i in snap_singles]
+    amber.run_amber_parallel(user_input.processors_per_node)
 
 
 def clean_up_abs(is_tully, n_trajectories, n_frame):
