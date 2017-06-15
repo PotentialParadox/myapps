@@ -29,14 +29,11 @@ def get_num_atoms_amber_out(nasqm_root):
             search_results = re.findall(p_natom, line)
             return int(search_results[0])
 
-
-def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
+def read_nasqm_excited_states(input_stream, n_states):
     '''
-    Write the firt n_states excited states energies and strengths to the output stream
-    in eV
+    Return a tupple of of energies and strenghts
+    read from an amber output file
     '''
-    if not output_stream:
-        output_stream = io.StringIO()
     p_omega = re.compile(r'Frequencies \(eV\) and Oscillator')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     energies = []
@@ -44,11 +41,19 @@ def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
     for line in input_stream:
         if re.search(p_omega, line):
             input_stream.readline()
-            for state in range(n_states):
+            for _ in range(n_states):
                 line2 = input_stream.readline()
                 search_results = re.findall(p_float, line2)
                 energies.append(search_results[0])
                 strengths.append(search_results[-1])
+    return np.array(energies), np.array(strengths)
+
+def create_spectra_string(output_stream, energies, strengths, n_states):
+    '''
+    Prints and returns a formated string using the appropriate inputs
+    '''
+    if not output_stream:
+        output_stream = io.StringIO()
     n_steps = int(len(energies) / n_states)
     # NAESMD will run twice on the first iteration of a md simulation
     # we only want to count the second one. During singlepoint calculations
@@ -61,6 +66,15 @@ def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
                                                               float(strengths[index])))
         output_stream.write('\n')
     return output_stream.getvalue()
+
+
+def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
+    '''
+    Write the firt n_states excited states energies and strengths to the output stream
+    in eV
+    '''
+    energies, strengths = read_nasqm_excited_states(input_stream, n_states)
+    return create_spectra_string(output_stream, energies, strengths, n_states)
 
 
 def find_excited_energy(input_stream, output_stream=None, state=1):
