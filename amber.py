@@ -9,27 +9,29 @@ class Amber:
     '''
     A class to control calls to amber
     '''
-    def __init__(self, input_files=None, output_files=None, coordinate_files=None,
-                 prmtop_files=None, restart_files=None, export_files=None):
-        self.input_files = input_files
-        self.output_files = output_files
+    def __init__(self, input_roots=None, output_roots=None, coordinate_files=None,
+                 prmtop_files=None, restart_roots=None, export_roots=None):
+        self.input_roots = input_roots
+        self.output_roots = output_roots
         self.coordinate_files = coordinate_files
         self.prmtop_files = prmtop_files
-        self.restart_files = restart_files
-        self.export_files = export_files
+        self.restart_roots = restart_roots
+        self.export_roots = export_roots
 
     def run_amber(self, conjoined_list):
         '''
         Single thread amber run
         '''
-        input_file = conjoined_list[0]
-        output_file = conjoined_list[1]
+        input_root = conjoined_list[0]
+        output_root = conjoined_list[1]
         coordinate_file = conjoined_list[2]
         prmtop_file = conjoined_list[3]
-        restart_file = conjoined_list[4]
-        export_file = conjoined_list[5]
-        subprocess.run(['sander', '-O', '-i', input_file, '-o', output_file, '-c',
-                        coordinate_file, '-p', prmtop_file, '-r', restart_file, '-x', export_file])
+        restart_root = conjoined_list[4]
+        export_root = conjoined_list[5]
+        subprocess.run(['sander', '-O', '-i', "{}.in".format(input_root), '-o',
+                        "{}.out".format(output_root), '-c', coordinate_file,
+                        '-p', prmtop_file, '-r', "{}.rst".format(restart_root),
+                        '-x', "{}.nc".format(export_root)])
 
     def run_amber_parallel(self, number_processors=4):
         '''
@@ -37,10 +39,10 @@ class Amber:
         '''
         pool = Pool(number_processors)
         conjoined_list = []
-        for i in range(len(self.input_files)):
-            conjoined_list.append([self.input_files[i], self.output_files[i],
+        for i in range(len(self.input_roots)):
+            conjoined_list.append([self.input_roots[i], self.output_roots[i],
                                    self.coordinate_files[i], self.prmtop_files[i],
-                                   self.restart_files[i], self.export_files[i]])
+                                   self.restart_roots[i], self.export_roots[i]])
         pool.map(self.run_amber, conjoined_list)
         pool.close()
         pool.join()

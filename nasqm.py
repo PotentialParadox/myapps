@@ -68,12 +68,12 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
         run_slurm(slurm_files)
     else:
         amber = Amber()
-        amber.input_files = ["{}.in".format(i) for i in trajectory_roots]
-        amber.output_files = ["{}.out".format(i) for i in trajectory_roots]
+        amber.input_roots = trajectory_roots
+        amber.output_files = trajectory_roots
         amber.coordinate_files = snap_restarts
         amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
-        amber.restart_files = ["{}.rst".format(i) for i in trajectory_roots]
-        amber.export_files = ["{}.nc".format(i) for i in trajectory_roots]
+        amber.restart_files = trajectory_roots
+        amber.export_files = trajectory_roots
         amber.run_amber_parallel(user_input.processors_per_node)
 
 def create_amber_inputs_abs_snaps(n_trajectories, n_frames):
@@ -109,12 +109,12 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
     amber = Amber()
-    amber.input_files = ["{}.in".format(i) for i in amber_inputs]
-    amber.output_files = ["{}.out".format(i) for i in snap_singles]
+    amber.input_files = amber_inputs
+    amber.output_files = snap_singles
     amber.coordinate_files = snap_restarts
     amber.prmtop_files = ["m1.prmtop"]*len(snap_singles)
-    amber.restart_files = ["{}.rst".format(i) for i in snap_singles]
-    amber.export_files = ["{}.nc".format(i) for i in snap_singles]
+    amber.restart_files = snap_singles
+    amber.export_files = snap_singles
     amber.run_amber_parallel(user_input.processors_per_node)
 
 
