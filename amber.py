@@ -18,9 +18,9 @@ class Amber:
         self.restart_roots = restart_roots
         self.export_roots = export_roots
 
-    def run_amber(self, conjoined_list):
+    def run_amber_worker(self, conjoined_list):
         '''
-        Single thread amber run
+        Explanation for run amber parallel, needs to be private
         '''
         input_root = conjoined_list[0]
         output_root = conjoined_list[1]
@@ -33,7 +33,7 @@ class Amber:
                         '-p', prmtop_file, '-r', "{}.rst".format(restart_root),
                         '-x', "{}.nc".format(export_root)])
 
-    def run_amber_parallel(self, number_processors=4):
+    def run_amber(self, number_processors=1):
         '''
         Multithreaded amber run
         '''
@@ -43,6 +43,6 @@ class Amber:
             conjoined_list.append([self.input_roots[i], self.output_roots[i],
                                    self.coordinate_files[i], self.prmtop_files[i],
                                    self.restart_roots[i], self.export_roots[i]])
-        pool.map(self.run_amber, conjoined_list)
+        pool.map(self.run_amber_worker, conjoined_list)
         pool.close()
         pool.join()

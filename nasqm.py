@@ -40,7 +40,7 @@ def create_inputceon_copies(input_ceon, root_name, number):
         input_ceons.append(input_ceon.copy(file_name))
     return input_ceons
 
-def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_snapshots,
+def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshots,
                                    user_input, input_ceon):
     '''
     Run n_snapshots simulations using nasqm_root as the basis for the generation of the
@@ -48,7 +48,7 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
     number of steps between the snapshots of the trajectory you are using as your geometries
     generator.
     '''
-    restart_step = int(n_coordinates / n_snapshots)
+    restart_step = int(n_frames / n_snapshots)
     amber_restart_root = 'ground_snap'
     create_restarts(amber_input=nasqm_root, output=amber_restart_root, step=restart_step)
     input_ceons = create_inputceon_copies(input_ceon, output_root, n_snapshots)
@@ -62,19 +62,18 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
         for i in range(n_snapshots):
             snap_restarts.append(amber_restart_root+"."+str(i+1))
             trajectory_roots.append(output_root + str(i + 1))
+    amber = Amber()
+    amber.input_roots = trajectory_roots
+    amber.output_roots = trajectory_roots
+    amber.coordinate_files = snap_restarts
+    amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
+    amber.restart_roots = trajectory_roots
+    amber.export_roots = trajectory_roots
     if user_input.is_hpc:
-        slurm_files = slurm_trajectory_files(user_input, 'ground_snap', output_root, output_root,
-                                             n_snapshots)
+        slurm_files = slurm_trajectory_files(user_input, amber, output_root, n_snapshots)
         run_slurm(slurm_files)
     else:
-        amber = Amber()
-        amber.input_roots = trajectory_roots
-        amber.output_files = trajectory_roots
-        amber.coordinate_files = snap_restarts
-        amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
-        amber.restart_files = trajectory_roots
-        amber.export_files = trajectory_roots
-        amber.run_amber_parallel(user_input.processors_per_node)
+        amber.run_amber(user_input.processors_per_node)
 
 def create_amber_inputs_abs_snaps(n_trajectories, n_frames):
     '''
@@ -109,13 +108,13 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
     amber = Amber()
-    amber.input_files = amber_inputs
-    amber.output_files = snap_singles
+    amber.input_roots = amber_inputs
+    amber.output_roots = snap_singles
     amber.coordinate_files = snap_restarts
     amber.prmtop_files = ["m1.prmtop"]*len(snap_singles)
-    amber.restart_files = snap_singles
-    amber.export_files = snap_singles
-    amber.run_amber_parallel(user_input.processors_per_node)
+    amber.restart_roots = snap_singles
+    amber.export_roots = snap_singles
+    amber.run_amber(user_input.processors_per_node)
 
 
 def clean_up_abs(is_tully, n_trajectories, n_frame):
@@ -149,17 +148,23 @@ def run_ground_state_dynamics(input_ceon, user_input):
     input_ceon.set_verbosity(0)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
-    coordinate_file = None
+    amber = Amber()
+    amber.input_roots = ["md_qmmm_amb"]
+    amber.output_roots = ["nasqm_ground"]
+    amber.prmtop_files = ["m1.prmtop"]
+    amber.restart_roots = ["nasqm_ground"]
+    amber.export_roots = ["nasqm_ground"]
     if user_input.is_qmmm:
-        coordinate_file = 'm1_md2.rst'
+        amber.coordinate_files = ['m1_md2.rst']
+    else:
+        amber.coordinate_files = ['m1_md2.rst']
     if user_input.is_hpc:
-        output_root = "nasqm_ground"
         number_trajectories = 1
-        slurm_files = slurm_trajectory_files(user_input, coordinate_file, output_root, output_root,
+        slurm_files = slurm_trajectory_files(user_input, amber, amber.output_roots[0],
                                              number_trajectories)
         run_slurm(slurm_files)
     else:
-        run_nasqm('nasqm_ground', coordinate_file=coordinate_file, pmemd_available=False)
+        amber.run_amber()
 
 def run_absorption_trajectories(input_ceon, user_input):
     '''
@@ -216,7 +221,9 @@ def run_excited_state_trajectories(input_ceon, user_input):
     input_ceon.set_verbosity(3)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
-    run_simulation_from_trajectory('nasqm_ground', 'nasqm_flu_', user_input.n_frames_gs,
+    input_root = "nasqm_ground"
+    output_root = "nasqm_flu_"
+    run_simulation_from_trajectory(input_root, output_root, user_input.n_frames_gs,
                                    user_input.n_snapshots_ex, user_input, input_ceon)
 
 def run_fluorescence_collection(user_input):
