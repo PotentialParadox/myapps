@@ -34,6 +34,20 @@ def userinput():
     user_input.max_jobs = 4
     return user_input
 
+class Amber:
+    '''
+    Mock amber class
+    '''
+    def __init__(self):
+        self.input_roots = None
+        self.output_roots = None
+
+@pytest.fixture
+def amber():
+    '''
+    return a mock amber object
+    '''
+    return Amber()
 
 def test_create_slurm_header(userinput):
     '''
@@ -47,44 +61,45 @@ def test_create_slurm_header(userinput):
     assert slurm_header == comparison
 
 
-def test_build_command():
+def test_build_command(amber):
     '''
     Tests the build command
     '''
-    restart_root = "ground_snap"
-    output_root = "nasqm_abs_"
+    amber.input_roots = ["nasqm_abs_"]
+    amber.restart_roots = ["ground_snap"]
+    amber.output_roots = ["nasqm_abs_"]
     n_trajectories = 16
-    result = nasqm_slurm.build_command(restart_root, output_root, n_trajectories)
+    result = nasqm_slurm.build_command(amber, n_trajectories)
     test = open("nasqm_slurm_build_command.txt", 'r').read()
     assert result == test
 
 
-def test_slurm_trajectory_file_1(userinput):
+def test_slurm_trajectory_file_1(userinput, amber):
     '''
     Tests to see if slurm trajectory_file is capable of running
-    one trajectory
+    one abs trajectory
     '''
-    restart_root = "ground_snap"
-    output_root = "nasqm_abs_"
+    amber.input_roots = ["nasqm_abs_"]
+    amber.output_roots = ["nasqm_abs_"]
+    amber.restart_roots = ["ground_snap"]
     title = "MyJob"
     n_trajectories = 1
-    result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
-                                               output_root, title, n_trajectories)
+    result = nasqm_slurm.slurm_trajectory_files(userinput, amber, title, n_trajectories)
     test = open("nasqm_slurm_1.txt", 'r').read()
     assert result == (None, test)
 
 
-def test_slurm_trajectory_file_16(userinput):
+def test_slurm_trajectory_file_16(userinput, amber):
     '''
     Tests to see if slurm trajectory_file is capable of running
     one whole trajectory
     '''
-    restart_root = "ground_snap"
-    output_root = "nasqm_abs_"
+    amber.input_roots = ["nasqm_abs_"]
+    amber.restart_roots = ["ground_snap"]
+    amber.output_roots = ["nasqm_abs_"]
     title = "MyJob"
     n_trajectories = 16
-    result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
-                                               output_root, title, n_trajectories)
+    result = nasqm_slurm.slurm_trajectory_files(userinput, amber, title, n_trajectories)
     test = open("nasqm_slurm_16.txt", 'r').read()
     assert result == (test, None)
 
@@ -94,12 +109,12 @@ def test_slurm_trajectory_file_33(userinput):
     Tests to see if slurm trajectory_file is capable of running
     multiple whole trajectories with remainder
     '''
-    restart_root = "ground_snap"
-    output_root = "nasqm_abs_"
+    amber.input_roots = ["nasqm_abs_"]
+    amber.restart_roots = ["ground_snap"]
+    amber.output_roots = ["nasqm_abs_"]
     title = "MyJob"
     n_trajectories = 33
-    result = nasqm_slurm.slurm_trajectory_files(userinput, restart_root,
-                                               output_root, title, n_trajectories)
+    result = nasqm_slurm.slurm_trajectory_files(userinput, amber, title, n_trajectories)
     test_0 = open("nasqm_slurm_32.txt", 'r').read()
     test_1 = open("nasqm_slurm_1.txt", 'r').read()
     assert result == (test_0, test_1)

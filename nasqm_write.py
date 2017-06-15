@@ -17,7 +17,7 @@ def numpy_to_specta_string(numpy_data):
     return string_output
 
 
-def strip_timedelay_flu_spectra(spectra_string, n_trajectories, time_step, time_delay):
+def strip_timedelay(spectra_string, n_trajectories, time_step, time_delay):
     '''
     Remove the data from the equilibration time given by time_delay
     Time is in fs
@@ -43,7 +43,7 @@ def strip_timedelay_flu_spectra(spectra_string, n_trajectories, time_step, time_
 
 def accumulate_flu_spectra(n_trajectories):
     """
-    Create the spectra_flu.input file using the nasqm_flu_* files
+    Create the spectra_flu.input file using the nasqm_flu_*.out files
     """
     n_states = 1
     output_stream = io.StringIO()
@@ -85,9 +85,9 @@ def write_spectra_flu_input(user_input):
     Use hist_spectra_lifetime, and naesmd_spectra_plotter to get the spectra.
     '''
     fluor_string = accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex)
-    stripped_fl_string = strip_timedelay_flu_spectra(fluor_string, user_input.n_snapshots_ex,
-                                                     user_input.time_step,
-                                                     user_input.fluorescene_time_delay)
+    stripped_fl_string = strip_timedelay(fluor_string, user_input.n_snapshots_ex,
+                                         user_input.time_step,
+                                         user_input.fluorescene_time_delay)
     open('spectra_flu.input', 'w').write(stripped_fl_string)
 
 
@@ -123,4 +123,3 @@ def write_nasqm_flu_energie(n_trajectories, n_states=1):
     for i in range(n_rows_per_trajectory):
         energy = np.average(data[i::n_rows_per_trajectory])
         average_energies_time.write(str(energy) + '\n')
-

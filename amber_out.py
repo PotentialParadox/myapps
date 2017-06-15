@@ -17,18 +17,6 @@ def find_dipoles(file_stream):
         dipoles[i] = float(value)
     return dipoles
 
-
-def get_num_atoms_amber_out(nasqm_root):
-    '''
-    Retrun the number of atoms
-    '''
-    file_in = open(nasqm_root+'.out', 'r')
-    p_natom = re.compile(r'NATOM\s*=*\s*(\d+)')
-    for line in file_in:
-        if re.search(p_natom, line):
-            search_results = re.findall(p_natom, line)
-            return int(search_results[0])
-
 def read_nasqm_excited_states(input_stream, n_states):
     '''
     Return a tupple of of energies and strenghts

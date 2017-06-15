@@ -14,26 +14,27 @@ def create_slurm_header(user_input):
             'memory': user_input.memory_per_node, 'walltime': user_input.walltime,
             'max_jobs': user_input.max_jobs}
 
-def build_command(restart_root, output_root, n_trajectories):
+def build_command(amber, n_trajectories):
     '''
     Returns the command for the slurm script
     '''
     command = "module load intel/2016.0.109\n\n"
-    command += "for i in $(seq 1 " + str(n_trajectories) + ")\n" \
-               "do\n" \
+    command += "for i in $(seq 1 {})\n".format(n_trajectories)
+    command += "do\n" \
                '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))"\n' \
                '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))"\n' \
                '    ID="$((${FIRST_COUNT} + ${i}))"\n'
-    command += "    $AMBERHOME/bin/sander -i md_qmmm_amb.in -o " + output_root \
-              + "${ID}.out -c " \
-              + restart_root+".${ID} -p m1.prmtop -r " \
-              + output_root+ "${ID}.rst -x "+output_root \
-              +"${ID}.nc\n" \
-              +"done\n" \
-              +"wait\n"
+    command += "    $AMBERHOME/bin/sander -i {}${{ID}}.in -o {}".format(amber.input_roots[0],
+                                                                        amber.output_roots[0])
+    command += "${ID}.out -c "
+    command += "{}.${{ID}} -p m1.prmtop -r ".format(amber.restart_roots[0])
+    command += "{}${{ID}}.rst -x {}".format(amber.output_roots[0], amber.output_roots[0]) \
+               +"${ID}.nc\n" \
+               +"done\n" \
+               +"wait\n"
     return command
 
-def slurm_trajectory_files(user_input, restart_root, output_root, title, n_trajectories):
+def slurm_trajectory_files(user_input, amber, title, n_trajectories):
     '''
     Run multiple sander trajectories over hpc
     '''
@@ -44,10 +45,10 @@ def slurm_trajectory_files(user_input, restart_root, output_root, title, n_traje
     slurm_script_max = None
     slurm_script_nmax = None
     if n_arrays_max != 0:
-        command = build_command(restart_root, output_root, user_input.processors_per_node)
+        command = build_command(amber, user_input.processors_per_node)
         slurm_script_max = slurm_script.create_slurm_script(command, title, n_arrays_max)
     if n_trajectories_remaining != 0:
-        command = build_command(restart_root, output_root, n_trajectories_remaining)
+        command = build_command(amber, n_trajectories_remaining)
         slurm_script_nmax = slurm_script.create_slurm_script(command, title, 1)
     return slurm_script_max, slurm_script_nmax
 

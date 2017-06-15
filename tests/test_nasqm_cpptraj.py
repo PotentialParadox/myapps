@@ -88,6 +88,7 @@ def test_read_closest_4():
 
 def test_update_closest_1(input_ceon, userinput):
     '''
+    Integration
     Test to see if capable of updating one inputceon
     '''
     userinput.number_nearest_solvents = 3
@@ -98,6 +99,7 @@ def test_update_closest_1(input_ceon, userinput):
 
 def test_update_closest_4(input_ceon, userinput):
     '''
+    Integration
     Test to see if capable of update one inputceon
     file but with 4 values
     '''
@@ -109,6 +111,7 @@ def test_update_closest_4(input_ceon, userinput):
 
 def test_update_closest_multi(input_ceon, userinput):
     '''
+    Integration
     Test to see if capable of update two inputceon
     files with 3 closest values
     '''
@@ -120,6 +123,7 @@ def test_update_closest_multi(input_ceon, userinput):
 
 def test_update_closest_none(input_ceon, userinput):
     '''
+    Integration
     Test to make sure program doesn't fail when
     userinput.number_nearest_solvent = None
     '''
