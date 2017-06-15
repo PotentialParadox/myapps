@@ -2,7 +2,6 @@
 Class in charge of controling the input files for NASQM
 FIXME This should be refactored in oredered to be testable
 '''
-import subprocess
 import re
 from sed import sed_inplace, sed_global
 from periodic_table import periodic_table

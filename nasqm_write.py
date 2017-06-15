@@ -55,6 +55,29 @@ def accumulate_flu_spectra(n_trajectories):
     output_stream.close()
     return output_string
 
+def accumulate_abs_spectra(n_snapshots_gs, n_frames, n_states=20):
+    '''
+    Reads the data from the amber output files and writes the data to spectra_abs.input
+    '''
+    output_stream = io.StringIO()
+    for traj in range(n_snapshots_gs):
+        for frame in range(n_frames):
+            amber_out = "nasqm_abs_{}_{}.out".format(traj+1, frame+1)
+            input_stream = open(amber_out, 'r')
+            find_nasqm_excited_state(input_stream, output_stream, n_states)
+            input_stream.close()
+    output_string = output_stream.getvalue()
+    output_stream.close()
+    return output_string
+
+def write_spectra_abs_input(user_input):
+    '''
+    Writes the approriately formatted data to spectra_abs.input.
+    Use hist_spectra_lifetime, and naesmd_spectra_plotter to get the spectra.
+    '''
+    abs_string = accumulate_abs_spectra(user_input.n_snapshots_gs, user_input.n_frames_abs,
+                                        user_input.n_abs_exc)
+    open('spectra_abs.input', 'w').write(abs_string)
 
 def write_spectra_flu_input(user_input):
     '''
@@ -101,23 +124,3 @@ def write_nasqm_flu_energie(n_trajectories, n_states=1):
         energy = np.average(data[i::n_rows_per_trajectory])
         average_energies_time.write(str(energy) + '\n')
 
-
-def accumulate_abs_spectra(is_tully, n_snapshots_gs, n_frames, n_states=20):
-    '''
-    Reads the data from the amber output files and writes the data to spectra_abs.input
-    '''
-    output_stream = open('spectra_abs.input', 'w')
-    if is_tully:
-        for traj in range(n_snapshots_gs):
-            for frame in range(n_frames):
-                amber_out = 'nasqm_abs_' + str(traj+1) + '_' + str(frame+1) + '.out'
-                input_stream = open(amber_out, 'r')
-                find_nasqm_excited_state(input_stream, output_stream, n_states)
-                input_stream.close()
-    else:
-        for snap in range(n_snapshots_gs):
-            amber_out = 'nasqm_abs_' + str(snap+1) + '.out'
-            input_stream = open(amber_out, 'r')
-            find_nasqm_excited_state(input_stream, output_stream, n_states)
-            input_stream.close()
-    output_stream.close()

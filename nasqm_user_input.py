@@ -34,15 +34,15 @@ class UserInput:
         # Do you want to collect the data from the absorption calculations?
         self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
-        self.run_excited_state_trajectories = True
+        self.run_excited_state_trajectories = False
         # Do you want to collect the data from the exctied state trajectory
         # calculations?
-        self.run_fluorescence_collection = False
+        self.run_fluorescence_collection = True
 
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # further ground state dynamics
-        self.n_snapshots_gs = 4
+        self.n_snapshots_gs = 6
 
         # Change here the number of states you wish to
         # calculate in the absorption singlpoint calculations
@@ -51,28 +51,28 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 4
+        self.n_snapshots_ex = 16
 
         # Change here the time step that will be shared by
         # each trajectory
-        self.time_step = 0.2  # fs
+        self.time_step = 0.5  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 2 # ps
+        self.ground_state_run_time = 20 # ps
 
         # Change here how often you want to print the ground state trajectory
         self.n_steps_to_print_gs = 50
 
         # Change here the runtime for the the trajectories
         # used to create calculated the absorption
-        self.abs_run_time = 0.5 # ps
+        self.abs_run_time = 5 # ps
 
         # Change here how often you want to print the absorption trajectories
         self.n_steps_to_print_abs = 50
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 8 # ps
+        self.exc_run_time = 10 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation

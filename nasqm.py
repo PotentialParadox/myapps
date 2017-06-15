@@ -6,14 +6,14 @@ You'll find the parameters to change in the file nasqm_user_input.py
 '''
 import time
 import subprocess
-import copy
 from amber import run_amber_parallel
 from inputceon import InputCeon
 from nasqm_write import (accumulate_abs_spectra, write_omega_vs_time,
-                         write_nasqm_flu_energie, write_spectra_flu_input)
+                         write_nasqm_flu_energie, write_spectra_flu_input,
+                         write_spectra_abs_input)
 from nasqm_user_input import UserInput
 from nasqm_slurm import slurm_trajectory_files
-from nasqm_cpptraj import create_restarts
+from nasqm_cpptraj import create_restarts, update_closest
 from slurm import run_slurm
 
 
@@ -30,7 +30,7 @@ def run_nasqm(root_name, coordinate_file=None, pmemd_available=False):
     subprocess.run([amber, '-O', '-i', 'md_qmmm_amb.in', '-o', root_name+'.out', '-c',
                     cd_file, '-p', 'm1.prmtop', '-r', root_name+'.rst', '-x', root_name+'.nc'])
 
-def creat_inputceon_copies(input_ceon, root_name, number):
+def create_inputceon_copies(input_ceon, root_name, number):
     '''
     Create an array of copies of the inputceons
     '''
@@ -48,10 +48,11 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
     number of steps between the snapshots of the trajectory you are using as your geometries
     generator.
     '''
-    input_ceons = creat_inputceon_copies(input_ceon, output_root, n_snapshots)
     restart_step = int(n_coordinates / n_snapshots)
     amber_restart_root = 'ground_snap'
     create_restarts(amber_input=nasqm_root, output=amber_restart_root, step=restart_step)
+    input_ceons = create_inputceon_copies(input_ceon, output_root, n_snapshots)
+    update_closest(user_input, input_ceons)
     snap_restarts = []
     trajectory_roots = []
     if n_snapshots == 1:
@@ -67,14 +68,30 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_coordinates, n_sna
         run_slurm(slurm_files)
     else:
         pmemd_available = False
-        run_amber_parallel(pmemd_available, trajectory_roots, snap_restarts,
+        run_amber_parallel(pmemd_available, trajectory_roots, trajectory_roots, snap_restarts,
                            number_processors=user_input.processors_per_node)
 
+def create_amber_inputs_abs_snaps(n_trajectories, n_frames):
+    '''
+    Create the amber input files for abs snapshots
+    '''
+    amber_inputs = []
+    for traj_index in range(1, n_trajectories+1):
+        for _ in range(n_frames):
+            amber_inputs.append("nasqm_abs_{}".format(traj_index))
+    return amber_inputs
 
-def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
+def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
     '''
     Run snapshots on the nasqm_abs_* ground state trajectory runs
     '''
+    # input_ceons = create_inputceon_copies(input_ceon, "nasqm_abs_", n_trajectories)
+    # update_closest(user_input, input_ceons)
+    amber_inputs = create_amber_inputs_abs_snaps(n_trajectories, n_frames)
+    input_ceons = create_inputceon_copies(input_ceon, "nasqm_abs_", n_trajectories)
+    update_closest(user_input, input_ceons)
+    for i in input_ceons:
+        i.set_n_steps(0)
     pmemd_available = False # We require ESMD
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
@@ -87,14 +104,8 @@ def run_abs_snapshots(output_root, n_trajectories, n_frames, is_hpc):
         for frame in range(n_frames):
             snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
             snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
-    # if is_hpc:
-    #     create_snapshot_slurm_script(script_file_name='run_abs_snapshot.sbatch',
-    #                                  n_trajectories=n_trajectories, n_frames=n_frames,
-    #                                  root_name=output_root, crd_file=output_root)
-    #     print("Please now submit run_abs_snapshots.sbatch, then run abs collection")
-    #     sys.exit('Slurm submission exception')
-    # else:
-    run_amber_parallel(pmemd_available, snap_singles, snap_restarts, number_processors=8)
+    run_amber_parallel(pmemd_available, amber_inputs, snap_singles, snap_restarts,
+                       number_processors=8)
 
 
 def clean_up_abs(is_tully, n_trajectories, n_frame):
@@ -168,12 +179,9 @@ def run_absorption_snapshots(input_ceon, user_input):
     input_ceon.set_exc_state_init(0)
     input_ceon.set_verbosity(3)
     input_ceon.set_time_step(user_input.time_step)
-    if user_input.is_tully:
-        run_abs_snapshots(output_root='nasqm_abs_', n_trajectories=user_input.n_snapshots_gs,
-                          n_frames=user_input.n_frames_abs, is_hpc=user_input.is_hpc)
-    else:
-        run_simulation_from_trajectory('nasqm_ground', 'nasqm_abs_', user_input.n_frames_gs,
-                                       user_input.n_snapshots_gs, user_input, input_ceon)
+    run_abs_snapshots(n_trajectories=user_input.n_snapshots_gs,
+                      n_frames=user_input.n_frames_abs, user_input=user_input,
+                      input_ceon=input_ceon)
 
 def run_absorption_collection(user_input):
     '''
@@ -181,8 +189,7 @@ def run_absorption_collection(user_input):
     file
     '''
     print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
-    accumulate_abs_spectra(user_input.is_tully, n_snapshots_gs=user_input.n_snapshots_gs,
-                           n_frames=user_input.n_frames_abs, n_states=user_input.n_abs_exc)
+    write_spectra_abs_input(user_input)
     # clean_up_abs(user_input.is_tully, user_input.n_snapshots_gs, user_input.n_frames_abs)
 
 
@@ -229,6 +236,7 @@ def main():
 
     # Create the input_ceon object
     input_ceon = InputCeon(amber_input='md_qmmm_amb.in')
+    input_ceon.set_periodic(user_input.is_qmmm)
 
     start_time = time.time()
 

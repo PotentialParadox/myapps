@@ -8,6 +8,18 @@ import nasqm_cpptraj
 import nasqm_user_input
 import inputceon
 
+def setup_module(module):
+    '''
+    Switch to test directory
+    '''
+    os.chdir("tests")
+
+def teardown_module(module):
+    '''
+    Return to main directory
+    '''
+    os.chdir("..")
+
 @pytest.fixture
 def userinput():
     '''
@@ -95,7 +107,7 @@ def test_update_closest_4(input_ceon, userinput):
     result = test[0].get_mask()
     assert result == "':1,400,456,152,597'"
 
-def test_update_closet_multi(input_ceon, userinput):
+def test_update_closest_multi(input_ceon, userinput):
     '''
     Test to see if capable of update two inputceon
     files with 3 closest values
@@ -105,3 +117,14 @@ def test_update_closet_multi(input_ceon, userinput):
     nasqm_cpptraj.update_closest(userinput, test)
     result = test[1].get_mask()
     assert result == "':1,181,668,395'"
+
+def test_update_closest_none(input_ceon, userinput):
+    '''
+    Test to make sure program doesn't fail when
+    userinput.number_nearest_solvent = None
+    '''
+    userinput.number_nearest_solvents = None
+    test = [input_ceon.copy('test_inputceon.in')]
+    nasqm_cpptraj.update_closest(userinput, test)
+    result = test[0].get_mask()
+    assert result == "':1'"

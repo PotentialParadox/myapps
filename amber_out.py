@@ -2,6 +2,7 @@
 Functions to parse amber output
 '''
 import re
+import io
 import numpy as np
 
 def find_dipoles(file_stream):
@@ -29,11 +30,13 @@ def get_num_atoms_amber_out(nasqm_root):
             return int(search_results[0])
 
 
-def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
+def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
     '''
     Write the firt n_states excited states energies and strengths to the output stream
     in eV
     '''
+    if not output_stream:
+        output_stream = io.StringIO()
     p_omega = re.compile(r'Frequencies \(eV\) and Oscillator')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     energies = []
@@ -57,9 +60,10 @@ def find_nasqm_excited_state(input_stream, output_stream, n_states=1):
             output_stream.write("{: 24.14E}{: 24.14E}".format(float(energies[index]),
                                                               float(strengths[index])))
         output_stream.write('\n')
+    return output_stream.getvalue()
 
 
-def find_excited_energy(input_stream, output_stream, state):
+def find_excited_energy(input_stream, output_stream=None, state=1):
     '''
     Write the total energies of the excited state in eV
     '''
@@ -74,10 +78,12 @@ def find_excited_energy(input_stream, output_stream, state):
                     output_stream.write("{: 24.14E}".format(float(search_results[0])) + '\n')
 
 
-def find_nasqm_transition_dipole(input_stream, output_stream):
+def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''
     FIXME Write the transition dipoles to the output stream
     '''
+    if not output_stream:
+        output_stream = io.StringIO()
     p_energy_block = re.compile(r'Omega.*\n\s+\d\s+(-?\d+\.\d+E?-?\d*\s*){5}')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     search_results = re.findall(p_energy_block, input_stream)
@@ -88,3 +94,17 @@ def find_nasqm_transition_dipole(input_stream, output_stream):
     for i, dipole in enumerate(dipole_array):
         if i % 2 != 0:
             output_stream.write(str(dipole) + '\n')
+    return output_stream.getvalue()
+
+def find_total_energies(input_stream):
+    '''
+    Find the total energies in the amber output file
+    and return a numpy array
+    '''
+    p_energies = re.compile(r"Etot\s*=\s+(\-?\d+\.\d+)")
+    file_string = input_stream.read()
+    search_results = re.findall(p_energies, file_string)
+    energy_list = []
+    for result in search_results:
+        energy_list.append(float(result))
+    return np.array(energy_list[:-2])

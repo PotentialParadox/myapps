@@ -1,7 +1,21 @@
 '''
 A unit tester for slurm.py
 '''
+import pytest
+import os
 from slurm import Slurm
+
+def setup_module(module):
+    '''
+    Switch to test directory
+    '''
+    os.chdir("tests")
+
+def teardown_module(module):
+    '''
+    Return to main directory
+    '''
+    os.chdir("..")
 
 SLURM_HEADER = {'email': "dtracy.uf@gmail.com", 'email_options': 3,
                 'n_nodes': 1, 'ppn': 2, 'memory': "3000mb", 'walltime': "00:01:00",

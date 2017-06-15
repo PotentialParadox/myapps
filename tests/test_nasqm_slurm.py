@@ -2,9 +2,22 @@
 A unit tester for nasqm_slurm.py
 Things were tested on Hypergator 2 at the University of Florida
 '''
+import os
 import pytest
 from nasqm_user_input import UserInput
 import nasqm_slurm
+
+def setup_module(module):
+    '''
+    Switch to test directory
+    '''
+    os.chdir("tests")
+
+def teardown_module(module):
+    '''
+    Return to main directory
+    '''
+    os.chdir("..")
 
 @pytest.fixture
 def userinput():

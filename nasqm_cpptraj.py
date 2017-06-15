@@ -53,14 +53,18 @@ def update_closest(user_input, input_ceon):
     molecule of interest
     '''
     for i in range(1, len(input_ceon)+1):
-        script = closest_script(user_input, i)
-        script_file = "closest_{}.traj".format(i)
-        open(script_file, 'w').write(script)
-        subprocess.run(['cpptraj', '-i', script_file])
-        closest_out = open("closest_{}.txt".format(i), 'r')
-        ids = read_closest(closest_out)
-        mask = "':1"
-        for index in ids:
-            mask += ",{0:.0f}".format(index)
-        mask += "'"
+        mask = ''
+        if user_input.number_nearest_solvents is None:
+            mask = "':1'"
+        else:
+            script = closest_script(user_input, i)
+            script_file = "closest_{}.traj".format(i)
+            open(script_file, 'w').write(script)
+            subprocess.run(['cpptraj', '-i', script_file])
+            closest_out = open("closest_{}.txt".format(i), 'r')
+            ids = read_closest(closest_out)
+            mask = "':1"
+            for index in ids:
+                mask += ",{0:.0f}".format(index)
+            mask += "'"
         input_ceon[i-1].set_mask(mask)

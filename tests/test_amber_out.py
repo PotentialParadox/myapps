@@ -7,13 +7,24 @@ import pytest
 import amber_out
 import numpy as np
 
-@pytest.mark.first
+def setup_module(module):
+    '''
+    Switch to test directory
+    '''
+    os.chdir("tests")
+
+def teardown_module(module):
+    '''
+    Return to main directory
+    '''
+    os.chdir("..")
+
+
 def test_find_excited_energy():
     '''
     Only tests the first state
     FIXME need test for multiple states
     '''
-    os.chdir("tests")
     test_string = "   1     2.72992400735139        -3.72988788959956       -0.503715618713691"\
                 "0.101289783571188E-01     14.1658956897201\n"\
                 "Total energy of the ground state (eV,AU)\n" \
