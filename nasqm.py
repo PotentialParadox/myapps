@@ -98,13 +98,14 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
     '''
     # input_ceons = create_inputceon_copies(input_ceon, "nasqm_abs_", n_trajectories)
     # update_closest(user_input, input_ceons)
+    nasqm_abs = "nasqm_abs_"
     amber_inputs = create_amber_inputs_abs_snaps(n_trajectories, n_frames)
-    input_ceons = create_inputceon_copies(input_ceon, "nasqm_abs_", n_trajectories)
+    input_ceons = create_inputceon_copies(input_ceon, nasqm_abs, n_trajectories)
     nasqm_cpptraj.update_closest(user_input, input_ceons)
     for i in input_ceons:
         i.set_n_steps(0)
     for i in range(n_trajectories):
-        amber_restart = 'nasqm_abs_' + str(i+1)
+        amber_restart = nasqm_abs + str(i+1)
         nasqm_cpptraj.create_restarts(amber_input=amber_restart, output=amber_restart)
     # We will now have files that look like nasqm_abs_[trajectory]_[frame]
     # Lets run it
@@ -112,16 +113,27 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
     snap_restarts = []
     for traj in range(n_trajectories):
         for frame in range(n_frames):
-            snap_singles.append("nasqm_abs_" + str(traj+1) + "_" + str(frame+1))
-            snap_restarts.append("nasqm_abs_" + str(traj+1) + "." + str(frame+1))
-    amber = Amber()
-    amber.input_roots = amber_inputs
-    amber.output_roots = snap_singles
-    amber.coordinate_files = snap_restarts
-    amber.prmtop_files = ["m1.prmtop"]*len(snap_singles)
-    amber.restart_roots = snap_singles
-    amber.export_roots = snap_singles
-    amber.run_amber(user_input.processors_per_node)
+            snap_singles.append(nasqm_abs + str(traj+1) + "_" + str(frame+1))
+            snap_restarts.append(nasqm_abs + str(traj+1) + "." + str(frame+1))
+    if user_input.is_hpc:
+        amber = Amber()
+        amber.input_roots = [nasqm_abs]
+        amber.output_roots = [nasqm_abs]
+        amber.coordinate_files = [nasqm_abs]
+        amber_calls_per_trajectory = n_frames
+        slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
+                                                         nasqm_abs, n_trajectories,
+                                                         amber_calls_per_trajectory)
+        nasqm_slurm.run_nasqm_slurm_files(slurm_files)
+    else:
+        amber = Amber()
+        amber.input_roots = amber_inputs
+        amber.output_roots = snap_singles
+        amber.coordinate_files = snap_restarts
+        amber.prmtop_files = [""]*len(snap_singles)
+        amber.restart_roots = snap_singles
+        amber.export_roots = snap_singles
+        amber.run_amber(user_input.processors_per_node)
 
 
 def clean_up_abs(is_tully, n_trajectories, n_frame):
