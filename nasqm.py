@@ -53,27 +53,31 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshot
                                   output=amber_restart_root, step=restart_step)
     input_ceons = create_inputceon_copies(input_ceon, output_root, n_snapshots)
     nasqm_cpptraj.update_closest(user_input, input_ceons)
-    snap_restarts = []
-    trajectory_roots = []
-    if n_snapshots == 1:
-        snap_restarts.append(amber_restart_root)
-        trajectory_roots.append(output_root + '1')
-    else:
-        for i in range(n_snapshots):
-            snap_restarts.append(amber_restart_root+"."+str(i+1))
-            trajectory_roots.append(output_root + str(i + 1))
-    amber = Amber()
-    amber.input_roots = trajectory_roots
-    amber.output_roots = trajectory_roots
-    amber.coordinate_files = snap_restarts
-    amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
-    amber.restart_roots = trajectory_roots
-    amber.export_roots = trajectory_roots
     if user_input.is_hpc:
+        amber = Amber()
+        amber.input_roots = [nasqm_root]
+        amber.output_roots = [nasqm_root]
+        amber.coordinate_files = [amber_restart_root]
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
                                                          output_root, n_snapshots)
         nasqm_slurm.run_nasqm_slurm_files(slurm_files)
     else:
+        snap_restarts = []
+        trajectory_roots = []
+        if n_snapshots == 1:
+            snap_restarts.append(amber_restart_root)
+            trajectory_roots.append(output_root + '1')
+        else:
+            for i in range(n_snapshots):
+                snap_restarts.append(amber_restart_root+"."+str(i+1))
+                trajectory_roots.append(output_root + str(i + 1))
+        amber = Amber()
+        amber.input_roots = trajectory_roots
+        amber.output_roots = trajectory_roots
+        amber.coordinate_files = snap_restarts
+        amber.prmtop_files = ["m1.prmtop"]*len(trajectory_roots)
+        amber.restart_roots = trajectory_roots
+        amber.export_roots = trajectory_roots
         amber.run_amber(user_input.processors_per_node)
 
 def create_amber_inputs_abs_snaps(n_trajectories, n_frames):
