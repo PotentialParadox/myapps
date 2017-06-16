@@ -39,36 +39,38 @@ def create_inputceon_copies(input_ceon, root_name, number):
         input_ceons.append(input_ceon.copy(file_name))
     return input_ceons
 
-def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshots,
+def run_simulation_from_trajectory(nasqm_root, output_root, n_frames_in_oringinal, n_new_trajectories,
                                    user_input, input_ceon):
     '''
-    Run n_snapshots simulations using nasqm_root as the basis for the generation of the
+    Run n_new_trajectories simulations using nasqm_root as the basis for the generation of the
     inital geometries. This will output data to output_root+str(i). Restart_step is the
     number of steps between the snapshots of the trajectory you are using as your geometries
     generator.
     '''
-    restart_step = int(n_frames / n_snapshots)
+    restart_step = int(n_frames_in_oringinal / n_new_trajectories)
     amber_restart_root = 'ground_snap'
     nasqm_cpptraj.create_restarts(amber_input=nasqm_root,
                                   output=amber_restart_root, step=restart_step)
-    input_ceons = create_inputceon_copies(input_ceon, output_root, n_snapshots)
+    input_ceons = create_inputceon_copies(input_ceon, output_root, n_new_trajectories)
     nasqm_cpptraj.update_closest(user_input, input_ceons)
     if user_input.is_hpc:
         amber = Amber()
         amber.input_roots = [output_root]
         amber.output_roots = [output_root]
         amber.coordinate_files = [amber_restart_root]
+        amber_calls_per_trajectory = 1
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
-                                                         output_root, n_snapshots)
+                                                         output_root, n_new_trajectories,
+                                                         amber_calls_per_trajectory)
         nasqm_slurm.run_nasqm_slurm_files(slurm_files)
     else:
         snap_restarts = []
         trajectory_roots = []
-        if n_snapshots == 1:
+        if n_new_trajectories == 1:
             snap_restarts.append(amber_restart_root)
             trajectory_roots.append(output_root + '1')
         else:
-            for i in range(n_snapshots):
+            for i in range(n_new_trajectories):
                 snap_restarts.append(amber_restart_root+"."+str(i+1))
                 trajectory_roots.append(output_root + str(i + 1))
         amber = Amber()
@@ -165,9 +167,11 @@ def run_ground_state_dynamics(input_ceon, user_input):
         amber.coordinate_files = ['m1_md2.rst']
     if user_input.is_hpc:
         number_trajectories = 1
+        amber_calls_per_trajectory = 1
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
                                                          amber.output_roots[0],
-                                                         number_trajectories)
+                                                         number_trajectories,
+                                                         amber_calls_per_trajectory)
         nasqm_slurm.run_nasqm_slurm_files(slurm_files)
     else:
         amber.run_amber()

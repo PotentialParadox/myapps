@@ -14,7 +14,7 @@ def create_slurm_header(user_input):
             'memory': user_input.memory_per_node, 'walltime': user_input.walltime,
             'max_jobs': user_input.max_jobs}
 
-def build_command(amber, n_trajectories):
+def build_trajectory_command(amber, n_trajectories):
     '''
     Returns the command for the slurm script
     '''
@@ -34,7 +34,41 @@ def build_command(amber, n_trajectories):
                +"wait\n"
     return command
 
-def slurm_trajectory_files(user_input, amber, title, n_trajectories):
+def build_snapshot_command(amber, n_trajectories, amber_calls_per_trajectory):
+    '''
+    Returns the command for the slurm script
+    '''
+    command = "module load intel/2016.0.109\n\n"
+    command += "for i in $(seq 1 {})\n".format(n_trajectories)
+    command += "do\n" \
+               '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))"\n' \
+               '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))"\n' \
+               '    TRAJ="$((${FIRST_COUNT} + ${i}))"\n'
+    command += "    for FRAME in $(seq 1 {})\n".format(amber_calls_per_trajectory)
+    command += "    do\n"
+    command += "        $AMBERHOME/bin/sander -i"
+    command += " {}${{TRAJ}}_${{FRAME}}.in -o {}".format(amber.input_roots[0],
+                                                         amber.output_roots[0])
+    command += "${TRAJ}_${FRAME}.out -c "
+    command += "{}.${{TRAJ}} -p m1.prmtop -r ".format(amber.coordinate_files[0])
+    command += "{}${{TRAJ}}_${{FRAME}}.rst -x {}".format(amber.output_roots[0],
+                                                         amber.output_roots[0]) \
+               +"${TRAJ}_${FRAME}.nc &\n" \
+               +"    done\n" \
+               +"done\n" \
+               +"wait\n"
+    return command
+
+def build_command(amber, n_trajectories, n_snaps_per_trajectory):
+    '''
+    small wrapper to the build commands
+    '''
+    if n_snaps_per_trajectory > 1:
+        return build_snapshot_command(amber, n_trajectories, n_snaps_per_trajectory)
+    else:
+        return build_trajectory_command(amber, n_trajectories)
+
+def slurm_trajectory_files(user_input, amber, title, n_trajectories, amber_calls_per_trajectory):
     '''
     Run multiple sander trajectories over hpc
     '''
@@ -45,10 +79,10 @@ def slurm_trajectory_files(user_input, amber, title, n_trajectories):
     slurm_script_max = None
     slurm_script_nmax = None
     if n_arrays_max != 0:
-        command = build_command(amber, user_input.processors_per_node)
+        command = build_command(amber, user_input.processors_per_node, amber_calls_per_trajectory)
         slurm_script_max = slurm_script.create_slurm_script(command, title, n_arrays_max)
     if n_trajectories_remaining != 0:
-        command = build_command(amber, n_trajectories_remaining)
+        command = build_command(amber, n_trajectories_remaining, amber_calls_per_trajectory)
         slurm_script_nmax = slurm_script.create_slurm_script(command, title, 1)
     return slurm_script_max, slurm_script_nmax
 
