@@ -72,7 +72,7 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshot
     if user_input.is_hpc:
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
                                                          output_root, n_snapshots)
-        nasqm_slurm.run_slurm(slurm_files)
+        nasqm_slurm.run_nasqm_slurm_files(slurm_files)
     else:
         amber.run_amber(user_input.processors_per_node)
 

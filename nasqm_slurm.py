@@ -3,7 +3,7 @@ Functions used to interface the NASQM automation routines with
 the Slurm wrapper
 '''
 import math
-from slurm import Slurm, run_slurm
+import slurm
 
 def create_slurm_header(user_input):
     '''
@@ -41,7 +41,7 @@ def slurm_trajectory_files(user_input, amber, title, n_trajectories):
     n_arrays_max = math.floor(n_trajectories/user_input.processors_per_node)
     n_trajectories_remaining = n_trajectories - n_arrays_max * user_input.processors_per_node
     slurm_header = create_slurm_header(user_input)
-    slurm_script = Slurm(slurm_header)
+    slurm_script = slurm.Slurm(slurm_header)
     slurm_script_max = None
     slurm_script_nmax = None
     if n_arrays_max != 0:
@@ -56,5 +56,5 @@ def run_nasqm_slurm_files(slurm_files):
     '''
     Run the files produced by slurm_trajectory_files
     '''
-    run_slurm(slurm_files[0])
-    run_slurm(slurm_files[1])
+    slurm.run_slurm(slurm_files[0])
+    slurm.run_slurm(slurm_files[1])
