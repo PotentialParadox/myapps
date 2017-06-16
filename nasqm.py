@@ -55,8 +55,8 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshot
     nasqm_cpptraj.update_closest(user_input, input_ceons)
     if user_input.is_hpc:
         amber = Amber()
-        amber.input_roots = [nasqm_root]
-        amber.output_roots = [nasqm_root]
+        amber.input_roots = [output_root]
+        amber.output_roots = [output_root]
         amber.coordinate_files = [amber_restart_root]
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
                                                          output_root, n_snapshots)
