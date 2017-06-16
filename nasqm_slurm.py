@@ -56,5 +56,7 @@ def run_nasqm_slurm_files(slurm_files):
     '''
     Run the files produced by slurm_trajectory_files
     '''
-    slurm.run_slurm(slurm_files[0])
-    slurm.run_slurm(slurm_files[1])
+    if slurm_files[0]:
+        slurm.run_slurm(slurm_files[0])
+    if slurm_files[1]:
+        slurm.run_slurm(slurm_files[1])
