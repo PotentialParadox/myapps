@@ -12,9 +12,8 @@ from nasqm_write import (write_omega_vs_time,
                          write_nasqm_flu_energie, write_spectra_flu_input,
                          write_spectra_abs_input)
 from nasqm_user_input import UserInput
-from nasqm_slurm import slurm_trajectory_files
-from nasqm_cpptraj import create_restarts, update_closest
-from slurm import run_slurm
+import nasqm_slurm
+import nasqm_cpptraj
 
 
 def run_nasqm(root_name, coordinate_file=None, pmemd_available=False):
@@ -50,9 +49,10 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshot
     '''
     restart_step = int(n_frames / n_snapshots)
     amber_restart_root = 'ground_snap'
-    create_restarts(amber_input=nasqm_root, output=amber_restart_root, step=restart_step)
+    nasqm_cpptraj.create_restarts(amber_input=nasqm_root,
+                                  output=amber_restart_root, step=restart_step)
     input_ceons = create_inputceon_copies(input_ceon, output_root, n_snapshots)
-    update_closest(user_input, input_ceons)
+    nasqm_cpptraj.update_closest(user_input, input_ceons)
     snap_restarts = []
     trajectory_roots = []
     if n_snapshots == 1:
@@ -70,8 +70,9 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames, n_snapshot
     amber.restart_roots = trajectory_roots
     amber.export_roots = trajectory_roots
     if user_input.is_hpc:
-        slurm_files = slurm_trajectory_files(user_input, amber, output_root, n_snapshots)
-        run_slurm(slurm_files)
+        slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
+                                                         output_root, n_snapshots)
+        nasqm_slurm.run_slurm(slurm_files)
     else:
         amber.run_amber(user_input.processors_per_node)
 
@@ -93,12 +94,12 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
     # update_closest(user_input, input_ceons)
     amber_inputs = create_amber_inputs_abs_snaps(n_trajectories, n_frames)
     input_ceons = create_inputceon_copies(input_ceon, "nasqm_abs_", n_trajectories)
-    update_closest(user_input, input_ceons)
+    nasqm_cpptraj.update_closest(user_input, input_ceons)
     for i in input_ceons:
         i.set_n_steps(0)
     for i in range(n_trajectories):
         amber_restart = 'nasqm_abs_' + str(i+1)
-        create_restarts(amber_input=amber_restart, output=amber_restart)
+        nasqm_cpptraj.create_restarts(amber_input=amber_restart, output=amber_restart)
     # We will now have files that look like nasqm_abs_[trajectory]_[frame]
     # Lets run it
     snap_singles = []
@@ -160,9 +161,10 @@ def run_ground_state_dynamics(input_ceon, user_input):
         amber.coordinate_files = ['m1_md2.rst']
     if user_input.is_hpc:
         number_trajectories = 1
-        slurm_files = slurm_trajectory_files(user_input, amber, amber.output_roots[0],
-                                             number_trajectories)
-        run_slurm(slurm_files)
+        slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
+                                                         amber.output_roots[0],
+                                                         number_trajectories)
+        nasqm_slurm.run_nasqm_slurm_files(slurm_files)
     else:
         amber.run_amber()
 
@@ -281,10 +283,3 @@ def main():
     print("Job finished in %s seconds" % (end_time - start_time))
 
 main()
-
-# stripper(n_ground_snaps=1000, n_atoms=48)
-# input_stream = open('naesmd.out', 'r')
-# output_stream = open('naesmd_energies.txt', 'w')
-# input_stream = open('nasqm_flu_16.out', 'r')
-# output_stream = open('nasqm_energies16.txt', 'w')
-# find_excited_energy(input_stream, output_stream, state=1)
