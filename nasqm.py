@@ -227,7 +227,7 @@ def run_absorption_collection(user_input):
     '''
     print("!!!!!!!!!!!!!!!!!!!! Parsing Absorbance !!!!!!!!!!!!!!!!!!!!")
     write_spectra_abs_input(user_input)
-    # clean_up_abs(user_input.is_tully, user_input.n_snapshots_gs, user_input.n_frames_abs)
+    clean_up_abs(user_input.is_tully, user_input.n_snapshots_gs, user_input.n_frames_abs)
 
 
 def run_excited_state_trajectories(input_ceon, user_input):
@@ -258,6 +258,8 @@ def run_fluorescence_collection(user_input):
     write_spectra_flu_input(user_input)
     write_omega_vs_time(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
     write_nasqm_flu_energie(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
+    subprocess.run('rm nasqm_flu_*', shell=True)
+    subprocess.run('rm ground_snap*', shell=True)
 
 
 def main():
