@@ -258,7 +258,6 @@ def run_fluorescence_collection(user_input):
     write_spectra_flu_input(user_input)
     write_omega_vs_time(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
     write_nasqm_flu_energie(n_trajectories=user_input.n_snapshots_ex, n_states=exc_state_init)
-    subprocess.run('rm nasqm_flu_*', shell=True)
     subprocess.run('rm ground_snap*', shell=True)
 
 
