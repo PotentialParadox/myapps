@@ -179,6 +179,7 @@ def run_ground_state_dynamics(input_ceon, user_input):
         amber.coordinate_files = ['m1.inpcrd']
     if user_input.is_hpc:
         subprocess.run(['cp', 'md_qmmm_amb.in', 'md_qmmm_amb1.in'])
+        subprocess.run(['cp', 'm1_md2.rst', 'm1_md2.rst.1'])
         number_trajectories = 1
         amber_calls_per_trajectory = 1
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
