@@ -166,7 +166,7 @@ def run_ground_state_dynamics(input_ceon, user_input):
     input_ceon.set_exc_state_init(0)
     input_ceon.set_verbosity(0)
     input_ceon.set_time_step(user_input.time_step)
-    input_ceon.set_random_velocities(False)
+    input_ceon.set_random_velocities(True)
     amber = Amber()
     amber.input_roots = ["md_qmmm_amb"]
     amber.output_roots = ["nasqm_ground"]
@@ -176,8 +176,9 @@ def run_ground_state_dynamics(input_ceon, user_input):
     if user_input.is_qmmm:
         amber.coordinate_files = ['m1_md2.rst']
     else:
-        amber.coordinate_files = ['m1_md2.rst']
+        amber.coordinate_files = ['m1.inpcrd']
     if user_input.is_hpc:
+        subprocess.run(['cp', 'md_qmmm_amb.in', 'md_qmmm_amb1.in'])
         number_trajectories = 1
         amber_calls_per_trajectory = 1
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
@@ -185,6 +186,10 @@ def run_ground_state_dynamics(input_ceon, user_input):
                                                          number_trajectories,
                                                          amber_calls_per_trajectory)
         nasqm_slurm.run_nasqm_slurm_files(slurm_files)
+        subprocess.run(['mv', 'nasqm_ground1.out', 'nasqm_ground.out'])
+        subprocess.run(['mv', 'nasqm_ground1.rst', 'nasqm_ground.rst'])
+        subprocess.run(['mv', 'nasqm_ground1.nc', 'nasqm_ground.nc'])
+        subprocess.run(['rm', 'md_qmmm_amb1.in'])
     else:
         amber.run_amber()
 
