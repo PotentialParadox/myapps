@@ -167,6 +167,7 @@ def run_ground_state_dynamics(input_ceon, user_input):
     input_ceon.set_verbosity(0)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(True)
+    input_ceon.set_printcharges(False)
     amber = Amber()
     amber.input_roots = ["md_qmmm_amb"]
     amber.output_roots = ["nasqm_ground"]
@@ -179,7 +180,7 @@ def run_ground_state_dynamics(input_ceon, user_input):
         amber.coordinate_files = ['m1.inpcrd']
     if user_input.is_hpc:
         subprocess.run(['cp', 'md_qmmm_amb.in', 'md_qmmm_amb1.in'])
-        subprocess.run(['cp', 'm1_md2.rst', 'm1_md2.rst.1'])
+        subprocess.run(['cp', 'm1_md2.rst', 'm1_md2.rst1'])
         number_trajectories = 1
         amber_calls_per_trajectory = 1
         slurm_files = nasqm_slurm.slurm_trajectory_files(user_input, amber,
@@ -249,6 +250,7 @@ def run_excited_state_trajectories(input_ceon, user_input):
     input_ceon.set_verbosity(3)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
+    input_ceon.set_printcharges(True)
     input_root = "nasqm_ground"
     output_root = "nasqm_flu_"
     run_simulation_from_trajectory(input_root, output_root, user_input.n_frames_gs,
