@@ -89,6 +89,15 @@ class InputCeon:
         sed_inplace('input.ceon', r'verbosity=\d*', 'verbosity=' + str(verbosity))
         sed_inplace(self.amber_input, r'verbosity\s*=\s*\d*', 'verbosity=' + str(verbosity))
 
+    def set_printcharges(self, is_printcharges):
+        """
+        Set the verbosity for both amber and naesmd
+        """
+        if is_printcharges:
+            sed_inplace('input.ceon', r'printcharges=\d*', 'printcharges=1')
+        else:
+            sed_inplace(self.amber_input, r'printcharges\s*=\s*\d*', 'printcharges=0')
+
     def set_periodic(self, periodic):
         '''
         Sets the appropriate boundary condition values for priodic or non-periodic conditions
