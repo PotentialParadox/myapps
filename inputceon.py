@@ -96,7 +96,7 @@ class InputCeon:
         if is_printcharges:
             sed_inplace('input.ceon', r'printcharges=\d*', 'printcharges=1')
         else:
-            sed_inplace(self.amber_input, r'printcharges\s*=\s*\d*', 'printcharges=0')
+            sed_inplace('input.ceon', r'printcharges=\d*', 'printcharges=0')
 
     def set_periodic(self, periodic):
         '''
