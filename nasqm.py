@@ -167,7 +167,6 @@ def run_ground_state_dynamics(input_ceon, user_input):
     input_ceon.set_verbosity(0)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(True)
-    input_ceon.set_printcharges(False)
     amber = Amber()
     amber.input_roots = ["md_qmmm_amb"]
     amber.output_roots = ["nasqm_ground"]
@@ -250,7 +249,6 @@ def run_excited_state_trajectories(input_ceon, user_input):
     input_ceon.set_verbosity(3)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
-    input_ceon.set_printcharges(True)
     input_root = "nasqm_ground"
     output_root = "nasqm_flu_"
     run_simulation_from_trajectory(input_root, output_root, user_input.n_frames_gs,
