@@ -17,24 +17,28 @@ class UserInput:
         # How many nodes will you be working on?
         self.number_nodes = 1
         # How many processors will be on a node?
-        self.processors_per_node = 8
+        self.processors_per_node = 4
         # How much memory per node
         self.memory_per_node = "2000mb"
         # What is the maximum amount of jobs you want to run at once?
         self.max_jobs = 4
         # What do you want to set as your default walltime?
         self.walltime = "01:00:00"
+        # Whats queue do you want the job to go to
+        self.qos = "roitberg-b"
+        # Do you want to use priority queuing?
+        self.priority_queue = False
         # Do you want to run ground state dynamics
         self.run_ground_state_dynamics = False
         # Do you want to run the trajectories used for the abjorption specta
         self.run_absorption_trajectories = False
         # Do you want to run the single point snapshots from these
-        # absorption spectra trajectories?
+        # absorption
         self.run_absorption_snapshots = False
         # Do you want to collect the data from the absorption calculations?
         self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
-        self.run_excited_state_trajectories = False
+        self.run_excited_state_trajectories = True
         # Do you want to collect the data from the exctied state trajectory
         # calculations?
         self.run_fluorescence_collection = True
@@ -42,7 +46,7 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # further ground state dynamics
-        self.n_snapshots_gs = 6
+        self.n_snapshots_gs = 8
 
         # Change here the number of states you wish to
         # calculate in the absorption singlpoint calculations
@@ -51,28 +55,28 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 16
+        self.n_snapshots_ex = 1
 
         # Change here the time step that will be shared by
         # each trajectory
         self.time_step = 0.5  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 20 # ps
+        self.ground_state_run_time = 2 # ps
 
         # Change here how often you want to print the ground state trajectory
         self.n_steps_to_print_gs = 50
 
         # Change here the runtime for the the trajectories
         # used to create calculated the absorption
-        self.abs_run_time = 5 # ps
+        self.abs_run_time = 50 # ps
 
         # Change here how often you want to print the absorption trajectories
         self.n_steps_to_print_abs = 50
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 10 # ps
+        self.exc_run_time = 0.01 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation
@@ -88,7 +92,7 @@ class UserInput:
         # from jumping from the ground state to the excited state.
         # We don't want to include this data in the calculation
         # of the fluorescence. We therefore set a time delay.
-        self.fluorescene_time_delay = 2000 # fs
+        self.fluorescene_time_delay = 0 # fs
 
         # Solvent Settings
         # This nasqm script will use cpptraj to include the nearest

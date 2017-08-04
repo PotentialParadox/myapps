@@ -38,6 +38,7 @@ class Slurm:
             title_used = self.header['title']
         job_script = '#!/bin/bash\n' \
                 '#SBATCH --job-name='+title_used+' # A name for your job\n' \
+                '#SBATCH --qos='+self.header['qos']+' # The queue for your job\n' \
                 '#SBATCH --output='+title_used+'-%j.output # Output File\n' \
                 '#SBATCH --error='+title_used+'-%j.err #Error File\n' \
                 '#SBATCH --mail-user='+self.header['email']+' # Email address\n' \
