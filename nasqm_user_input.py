@@ -26,8 +26,6 @@ class UserInput:
         self.walltime = "01:00:00"
         # Whats queue do you want the job to go to
         self.qos = "roitberg-b"
-        # Do you want to use priority queuing?
-        self.priority_queue = False
         # Do you want to run ground state dynamics
         self.run_ground_state_dynamics = False
         # Do you want to run the trajectories used for the abjorption specta
