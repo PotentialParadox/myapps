@@ -24,7 +24,7 @@ def build_trajectory_command(amber, n_trajectories):
                '    MULTIPLIER="$((${SLURM_ARRAY_TASK_ID} - 1))"\n' \
                '    FIRST_COUNT="$((${SLURM_CPUS_ON_NODE} * ${MULTIPLIER}))"\n' \
                '    ID="$((${FIRST_COUNT} + ${i}))"\n'
-    command += "    $AMBERHOME/bin/sander -i {}${{ID}}.in -o {}".format(amber.input_roots[0],
+    command += "    $AMBERHOME/bin/sander -O -i {}${{ID}}.in -o {}".format(amber.input_roots[0],
                                                                         amber.output_roots[0])
     command += "${ID}.out -c "
     command += "{}.${{ID}} -p m1.prmtop -r ".format(amber.coordinate_files[0])
@@ -46,7 +46,7 @@ def build_snapshot_command(amber, n_trajectories, amber_calls_per_trajectory):
                '    TRAJ="$((${FIRST_COUNT} + ${i}))"\n'
     command += "    for FRAME in $(seq 1 {})\n".format(amber_calls_per_trajectory)
     command += "    do\n"
-    command += "        $AMBERHOME/bin/sander -i"
+    command += "        $AMBERHOME/bin/sander -O -i"
     command += " {}${{TRAJ}}_${{FRAME}}.in -o {}".format(amber.input_roots[0],
                                                          amber.output_roots[0])
     command += "${TRAJ}_${FRAME}.out -c "
