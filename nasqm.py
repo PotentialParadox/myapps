@@ -54,6 +54,8 @@ def run_simulation_from_trajectory(nasqm_root, output_root, n_frames_in_oringina
     input_ceons = create_inputceon_copies(input_ceon, output_root, n_new_trajectories)
     nasqm_cpptraj.update_closest(user_input, input_ceons)
     if user_input.is_hpc:
+        if n_new_trajectories == 1:
+            subprocess.run(['mv', 'ground_snap', 'ground_snap.1'])
         amber = Amber()
         amber.input_roots = [output_root]
         amber.output_roots = [output_root]
