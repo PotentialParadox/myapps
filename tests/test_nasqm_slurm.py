@@ -26,6 +26,7 @@ def userinput():
     '''
     user_input = UserInput()
     user_input.email = "dtracy.uf@gmail.com"
+    user_input.qos = "roitberg"
     user_input.email_options = 2
     user_input.number_nodes = 1
     user_input.processors_per_node = 16
@@ -57,7 +58,7 @@ def test_create_slurm_header(userinput):
     slurm_header = nasqm_slurm.create_slurm_header(userinput)
     comparison = {'n_nodes': 1, 'ppn': 16, 'email_options': 2,
                   'max_jobs': 4, 'email': 'dtracy.uf@gmail.com',
-                  'walltime': '00:01:00', 'memory': '2000mb'}
+                  'walltime': '00:01:00', 'memory': '2000mb', 'qos': 'roitberg'}
     assert slurm_header == comparison
 
 
