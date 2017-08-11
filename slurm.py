@@ -60,6 +60,7 @@ def wait_for_job_finish(slurm_id):
     p_id = re.compile(slurm_id)
     condition = True
     while condition:
+        time.sleep(10)
         command = "squeue -j " + slurm_id
         proc = subprocess.Popen([command], shell=True, stdout=subprocess.PIPE,
                                 stderr=subprocess.PIPE, universal_newlines=True)
@@ -68,7 +69,6 @@ def wait_for_job_finish(slurm_id):
             return None
         if not re.search(p_id, stdout_value):
             condition = False
-        time.sleep(5)
 
 def run_slurm(slurm_script):
     '''
