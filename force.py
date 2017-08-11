@@ -44,5 +44,4 @@ def find_forces(file_1, file_2):
     forces_1 = np.zeros([n1, 3])
     for i in range(n1):
         forces_1[i] = np.sum(forces[i*n2:i*n2+n2], axis=0)
-    print(forces_1)
     return forces_1
