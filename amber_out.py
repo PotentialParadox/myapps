@@ -84,7 +84,7 @@ def find_excited_energy(input_stream, output_stream=None, state=1):
         output_stream = io.StringIO()
         is_io = True
     p_energy = re.compile('Total energies of excited states')
-    p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
+    p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
     for line in input_stream:
         if re.search(p_energy, line):
             for state_value in range(state):
