@@ -102,7 +102,7 @@ def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''
     if not output_stream:
         output_stream = io.StringIO()
-    p_energy_block = re.compile(r'Omega.*\n\s+\d\s+(-?\d+\.\d+E?-?\d*\s*){5}')
+    p_energy_block = re.compile(r'Omega.*\n\s+\d\s+(-?\d+\.\d+E?\-?\d*\s*){5}')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     search_results = re.findall(p_energy_block, input_stream)
     dipole_array = []
@@ -134,7 +134,7 @@ def find_mulliken(input_stream, state):
     '''
     p_start = re.compile(r"\(0 - ground\)       {}".format(state))
     p_end = re.compile("Total Mulliken Charge")
-    p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
+    p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
     list_charges = []
     for line in input_stream:
         if re.search(p_start, line):
