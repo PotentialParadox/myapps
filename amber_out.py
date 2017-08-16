@@ -64,6 +64,16 @@ def find_nasqm_excited_state(input_stream, output_stream=None, n_states=1):
     energies, strengths = read_nasqm_excited_states(input_stream, n_states)
     return create_spectra_string(output_stream, energies, strengths, n_states)
 
+def find_number_excited_states(input_stream):
+    '''
+    Finds the number of excited states propagated
+    '''
+    p_states = "Number of states to propagate"
+    for line in input_stream:
+        if re.search(p_states, line):
+            n_states = re.findall(r"\d+", line)
+            return int(n_states[0])
+
 
 def find_excited_energy(input_stream, output_stream=None, state=1):
     '''
@@ -85,7 +95,6 @@ def find_excited_energy(input_stream, output_stream=None, state=1):
     if is_io:
         return output_stream.getvalue()
     return
-
 
 def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''

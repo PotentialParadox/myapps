@@ -120,3 +120,10 @@ def test_find_mulliken_first():
                        -0.115, -0.131, -0.123, -0.131, -0.122, 0.139,
                        0.131, 0.140, 0.127, 0.135])
     np.testing.assert_array_equal(result, answer)
+
+
+def test_find_number_excited_states():
+    input_stream = open("nexmd.out", 'r')
+    result = amber_out.find_number_excited_states(input_stream)
+    answer = 3
+    assert result == answer
