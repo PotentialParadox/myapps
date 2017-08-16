@@ -89,3 +89,34 @@ def test_find_total_energies():
     result = amber_out.find_total_energies(input_stream)
     np.testing.assert_array_equal(result, np.array([167.2595, 167.3586, 167.9726,
                                                     168.5343, 168.3066]))
+
+def test_find_mulliken_ground():
+    '''
+    Tests the search for the ground mulliken charges
+    '''
+    input_stream = open("mulliken.out")
+    state = 0
+    result = amber_out.find_mulliken(input_stream, state)
+    answer = np.array([-0.138, -0.119, -0.123, -0.043, -0.122, -0.120,
+                       -0.114, -0.120, -0.031, 0.132, 0.140, 0.131, 0.134,
+                       0.132, 0.121, 0.122, -0.121, -0.116, -0.118, -0.122,
+                       -0.031, -0.119, -0.114, -0.037, 0.134, 0.128, 0.142,
+                       0.119, 0.113, 0.116, -0.115, -0.132, -0.124, -0.132,
+                       -0.122, 0.138, 0.130, 0.139, 0.126, 0.135])
+    np.testing.assert_array_equal(result, answer)
+
+def test_find_mulliken_first():
+    '''
+    Tests the search for the ground mulliken charges
+    '''
+    input_stream = open("mulliken.out")
+    state = 1
+    result = amber_out.find_mulliken(input_stream, state)
+    answer = np.array([-0.138, -0.121, -0.122, -0.041, -0.122,
+                       -0.120, -0.114, -0.113, -0.038, 0.133, 0.140,
+                       0.132, 0.134, 0.132, 0.122, 0.122, -0.121,
+                       -0.120, -0.122, -0.119, -0.040, -0.110, -0.114,
+                       -0.035, 0.133, 0.126, 0.141, 0.117, 0.112, 0.118,
+                       -0.115, -0.131, -0.123, -0.131, -0.122, 0.139,
+                       0.131, 0.140, 0.127, 0.135])
+    np.testing.assert_array_equal(result, answer)
