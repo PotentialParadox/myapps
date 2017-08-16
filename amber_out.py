@@ -69,6 +69,10 @@ def find_excited_energy(input_stream, output_stream=None, state=1):
     '''
     Write the total energies of the excited state in eV
     '''
+    is_io = None
+    if output_stream is None:
+        output_stream = io.StringIO()
+        is_io = True
     p_energy = re.compile('Total energies of excited states')
     p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
     for line in input_stream:
@@ -78,6 +82,9 @@ def find_excited_energy(input_stream, output_stream=None, state=1):
                 search_results = re.findall(p_float, line2)
                 if state_value == state - 1:
                     output_stream.write("{: 24.14E}".format(float(search_results[0])) + '\n')
+    if is_io:
+        return output_stream.getvalue()
+    return
 
 
 def find_nasqm_transition_dipole(input_stream, output_stream=None):
@@ -110,3 +117,24 @@ def find_total_energies(input_stream):
     for result in search_results:
         energy_list.append(float(result))
     return np.array(energy_list[:-2])
+
+def find_mulliken(input_stream, state):
+    '''
+    This is designed for a single point calculation
+    Returns the numpy array of the mulliken charges for a given state
+    '''
+    p_start = re.compile(r"\(0 - ground\)       {}".format(state))
+    p_end = re.compile("Total Mulliken Charge")
+    p_float = re.compile(r'-?\d+\.\d+E?-?\d*')
+    list_charges = []
+    for line in input_stream:
+        if re.search(p_start, line):
+            for line2 in input_stream:
+                if re.search(p_end, line2):
+                    break
+                search_result = re.findall(p_float, line2)
+                if not len(search_result) == 0:
+                    list_charges.append(float(search_result[0]))
+    n_atoms = int(len(list_charges) / 2)
+    charges = np.array(list_charges[0:n_atoms])
+    return charges
