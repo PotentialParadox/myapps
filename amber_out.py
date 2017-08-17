@@ -17,6 +17,7 @@ def find_dipoles(file_stream):
         dipoles[i] = float(value)
     return dipoles
 
+
 def read_nasqm_excited_states(input_stream, n_states):
     '''
     Return a tupple of of energies and strenghts
@@ -35,6 +36,7 @@ def read_nasqm_excited_states(input_stream, n_states):
                 energies.append(search_results[0])
                 strengths.append(search_results[-1])
     return np.array(energies), np.array(strengths)
+
 
 def create_spectra_string(output_stream, energies, strengths, n_states):
     '''
@@ -119,7 +121,7 @@ def find_ground_energies(input_stream, output_stream=None):
 
 def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''
-    FIXME Write the transition dipoles to the output stream
+    Return the transition dipoles
     '''
     if not output_stream:
         output_stream = io.StringIO()
