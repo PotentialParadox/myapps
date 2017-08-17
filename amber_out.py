@@ -96,6 +96,27 @@ def find_excited_energies(input_stream, output_stream=None, states=[1]):
         return output_stream.getvalue()
     return
 
+
+def find_ground_energies(input_stream, output_stream=None):
+    '''
+    Write the total energies of the excited state in eV
+    '''
+    is_io = None
+    if output_stream is None:
+        output_stream = io.StringIO()
+        is_io = True
+    p_energy = re.compile('Total energy of the ground state')
+    p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
+    for line in input_stream:
+        if re.search(p_energy, line):
+            line2 = input_stream.readline()
+            search_results = re.findall(p_float, line2)
+            output_stream.write("{: 24.14E}".format(float(search_results[0])) + '\n')
+    if is_io:
+        return output_stream.getvalue()
+    return
+
+
 def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''
     FIXME Write the transition dipoles to the output stream

@@ -23,7 +23,7 @@ def teardown_module(module):
 def test_find_excited_energies():
     '''
     Only tests the first state
-    FIXME need test for multiple states
+    Test for multiple states exists in NexmdOutput
     '''
     test_string = "   1     2.72992400735139        -3.72988788959956       -0.503715618713691"\
                 "0.101289783571188E-01     14.1658956897201\n"\
@@ -39,6 +39,27 @@ def test_find_excited_energies():
     output_string = output_stream.getvalue()
     output_stream.close()
     assert output_string == '   -4.00985112234037E+03\n'
+
+
+def test_find_ground_energies():
+    '''
+    Only tests the first state
+    Test for multiple states exists in NexmdOutput
+    '''
+    test_string = "   1     2.72992400735139        -3.72988788959956       -0.503715618713691"\
+                "0.101289783571188E-01     14.1658956897201\n"\
+                "Total energy of the ground state (eV,AU)\n" \
+                "0  -4012.58104634772       -147.459579686974\n"\
+                "Total energies of excited states (eV,AU)\n"\
+                "1  -4009.85112234037       -147.359256866811\n"\
+                "QMMM:"
+
+    input_stream = io.StringIO(test_string)
+    output_stream = io.StringIO()
+    amber_out.find_ground_energies(input_stream, output_stream)
+    output_string = output_stream.getvalue()
+    output_stream.close()
+    assert output_string == '   -4.01258104634772E+03\n'
 
 
 def test_find_nasqm_excited_state_1():
