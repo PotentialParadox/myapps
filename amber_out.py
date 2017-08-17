@@ -75,7 +75,7 @@ def find_number_excited_states(input_stream):
             return int(n_states[0])
 
 
-def find_excited_energy(input_stream, output_stream=None, state=1):
+def find_excited_energies(input_stream, output_stream=None, states=[1]):
     '''
     Write the total energies of the excited state in eV
     '''
@@ -87,10 +87,10 @@ def find_excited_energy(input_stream, output_stream=None, state=1):
     p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
     for line in input_stream:
         if re.search(p_energy, line):
-            for state_value in range(state):
+            for state_value in range(max(states)):
                 line2 = input_stream.readline()
                 search_results = re.findall(p_float, line2)
-                if state_value == state - 1:
+                if state_value + 1 in states:
                     output_stream.write("{: 24.14E}".format(float(search_results[0])) + '\n')
     if is_io:
         return output_stream.getvalue()

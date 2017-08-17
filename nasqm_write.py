@@ -4,7 +4,7 @@ Functions that write outputs of the NASQM script
 import subprocess
 import io
 import numpy as np
-from amber_out import find_nasqm_excited_state, find_excited_energy
+from amber_out import find_nasqm_excited_state, find_excited_energies
 
 
 def numpy_to_specta_string(numpy_data):
@@ -110,11 +110,12 @@ def write_nasqm_flu_energie(n_trajectories, n_states=1):
     Reads the data from the amber output files and writes the data
     to nasqm_flue_energies.txt
     '''
+    state_range = range(1, n_states+1)
     output_stream = open('nasqm_flu_energies.txt', 'w')
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         input_stream = open(amber_outfile, 'r')
-        find_excited_energy(input_stream, output_stream, n_states)
+        find_excited_energies(input_stream, output_stream, state_range)
     output_stream.close()
     average_energies_time = open('nasqm_flu_energy_time.txt', 'w')
     data = np.loadtxt('nasqm_flu_energies.txt')

@@ -20,7 +20,7 @@ def teardown_module(module):
     os.chdir("..")
 
 
-def test_find_excited_energy():
+def test_find_excited_energies():
     '''
     Only tests the first state
     FIXME need test for multiple states
@@ -35,7 +35,7 @@ def test_find_excited_energy():
 
     input_stream = io.StringIO(test_string)
     output_stream = io.StringIO()
-    amber_out.find_excited_energy(input_stream, output_stream, 1)
+    amber_out.find_excited_energies(input_stream, output_stream, [1])
     output_string = output_stream.getvalue()
     output_stream.close()
     assert output_string == '   -4.00985112234037E+03\n'
