@@ -121,7 +121,6 @@ def find_ground_energies(input_stream, output_stream=None):
 
 def find_nasqm_transition_dipole(input_stream, output_stream=None):
     '''
-    Return the transition dipoles
     '''
     if not output_stream:
         output_stream = io.StringIO()
@@ -170,3 +169,37 @@ def find_mulliken(input_stream, state):
     n_atoms = int(len(list_charges) / 2)
     charges = np.array(list_charges[0:n_atoms])
     return charges
+
+def find_molecular_orbitals(input_stream, output_stream=None):
+    '''
+    Returns a two row stream/string, the top row consisting of the occupied orbitals, and second,
+    the virtual
+    '''
+    if not output_stream:
+        output_stream = io.StringIO()
+    p_occupied = re.compile("QMMM: Occupied MO Energies")
+    p_virtual = re.compile("QMMM: Virtual MO Energies")
+    p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
+    p_qmmm = re.compile("QMMM")
+    for line in input_stream:
+        line2 = ""
+        if re.search(p_occupied, line):
+            while not re.search(p_qmmm, line2):
+                line2 = input_stream.readline()
+                search_result = re.findall(p_float, line2)
+                occupied_orbitals = np.array([float(i) for i in search_result])
+                for orbital in occupied_orbitals:
+                    output_stream.write("{: 16.8E}".format(orbital))
+            output_stream.write("\n")
+        if re.search(p_virtual, line2):
+            line2 = ""
+            while not re.search(p_qmmm, line2):
+                line2 = input_stream.readline()
+                search_result = re.findall(p_float, line2)
+                occupied_orbitals = np.array([float(i) for i in search_result])
+                for orbital in occupied_orbitals:
+                    output_stream.write("{: 16.8E}".format(orbital))
+            output_stream.write("\n")
+    return output_stream.getvalue()
+
+

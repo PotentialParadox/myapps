@@ -148,3 +148,46 @@ def test_find_number_excited_states():
     result = amber_out.find_number_excited_states(input_stream)
     answer = 3
     assert result == answer
+
+def test_find_molecular_orbitals_sl():
+    '''
+    Test to see if we can find all the molecular orbitals if they exist on one line
+    '''
+    test_string = "   4   5.223507      0.3371488       1.307608      0.2904138E-02   1.350377    \n"\
+                  "QMMM: Occupied MO Energies (eV):\n"\
+                  "      -44.02369531      -38.08051618      -32.43536223      -24.87485851      -20.09194335\n"\
+                  "QMMM: Virtual MO Energies (eV):\n"\
+                  "       -0.22417960        0.97215825        3.43420817        3.62191473        4.07142528\n"\
+                  "QMMM:\n"\
+                  "QMMM: SCF Energy =      -16.27809329 KCal/mol,       -68.10754234 KJ/mol\n"
+    input_stream = io.StringIO(test_string)
+    result = amber_out.find_molecular_orbitals(input_stream)
+    answer = " -4.40236953E+01 -3.80805162E+01 -3.24353622E+01 -2.48748585E+01 -2.00919434E+01\n"\
+             " -2.24179600E-01  9.72158250E-01  3.43420817E+00  3.62191473E+00  4.07142528E+00\n"
+    assert result == answer
+
+
+def test_find_molecular_orbitals_ml():
+    '''
+    Test to see if we can find all the molecular orbitals if they exist on multiple lines
+    '''
+    test_string = "   4   5.223507      0.3371488       1.307608      0.2904138E-02   1.350377    \n"\
+                  "QMMM: Occupied MO Energies (eV):\n"\
+                  "      -44.02369531      -38.08051618      -32.43536223      -24.87485851      -20.09194335\n"\
+                  "      -19.55122070      -19.23592030      -14.26529179      -14.03199539      -12.65494149\n"\
+                  "      -12.36988176      -12.33845690\n"\
+                  "QMMM: Virtual MO Energies (eV):\n"\
+                  "       -0.22417960        0.97215825        3.43420817        3.62191473        4.07142528\n"\
+                  "        5.45832964        6.75806534\n"\
+                  "QMMM:\n"\
+                  "QMMM: SCF Energy =      -16.27809329 KCal/mol,       -68.10754234 KJ/mol\n"
+    input_stream = io.StringIO(test_string)
+    result = amber_out.find_molecular_orbitals(input_stream)
+    answer = " -4.40236953E+01 -3.80805162E+01 -3.24353622E+01 -2.48748585E+01"\
+             " -2.00919434E+01 -1.95512207E+01 -1.92359203E+01 -1.42652918E+01"\
+             " -1.40319954E+01 -1.26549415E+01 -1.23698818E+01 -1.23384569E+01\n"\
+             " -2.24179600E-01  9.72158250E-01  3.43420817E+00  3.62191473E+00"\
+             "  4.07142528E+00  5.45832964E+00  6.75806534E+00\n"
+    open("result.txt", 'w').write(result)
+    open("answer.txt", 'w').write(answer)
+    assert result == answer
