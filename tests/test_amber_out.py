@@ -207,6 +207,6 @@ def test_find_scf_energies():
                   "QMMM: SCF Energy =      -16.03917358 KCal/mol,       -67.10790226 KJ/mol\n"\
                   "QMMM: SCF Energy = Heat of formation\n"
     input_stream = io.StringIO(test_string)
-    result = amber_out.find_scf_energy(input_stream)
+    result = amber_out.find_scf_energies(input_stream)
     answer = "-16.02468052\n-16.03917358\n"
     assert result == answer

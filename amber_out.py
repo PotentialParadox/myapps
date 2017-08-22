@@ -203,7 +203,7 @@ def find_molecular_orbitals(input_stream, output_stream=None):
     return output_stream.getvalue()
 
 
-def find_scf_energy(input_stream, output_stream=None):
+def find_scf_energies(input_stream, output_stream=None):
     '''
     Returns a stream/string with each line being an energy value
     '''
