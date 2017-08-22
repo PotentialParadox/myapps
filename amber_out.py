@@ -203,3 +203,17 @@ def find_molecular_orbitals(input_stream, output_stream=None):
     return output_stream.getvalue()
 
 
+def find_scf_energy(input_stream, output_stream=None):
+    '''
+    Returns a stream/string with each line being an energy value
+    '''
+    if not output_stream:
+        output_stream = io.StringIO()
+    p_SCF_Energy = re.compile("QMMM: SCF Energy")
+    p_float = re.compile(r'-?\d+\.\d+E?\-?\+?\d*')
+    for line in input_stream:
+        if re.search(p_SCF_Energy, line):
+            search_result = re.findall(p_float, line)
+            if len(search_result) > 0:
+                output_stream.write(search_result[0] + "\n")
+    return output_stream.getvalue()

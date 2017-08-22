@@ -191,3 +191,22 @@ def test_find_molecular_orbitals_ml():
     open("result.txt", 'w').write(result)
     open("answer.txt", 'w').write(answer)
     assert result == answer
+
+def test_find_scf_energies():
+    '''
+    Test to see if we can find all the SCF Energies
+    '''
+    test_string = "5.46897674        6.78304863\n"\
+                  "QMMM:\n"\
+                  "QMMM: SCF Energy =      -16.02468052 KCal/mol,       -67.04726331 KJ/mol\n"\
+                  "QMMM: SCF Energy = Heat of formation\n"\
+                  "QMMM: Virtual MO Energies (eV):\n"\
+                  "       -0.20232826        0.97862004        3.44128505        3.62892427        4.08834732\n"\
+                  "        5.46842837        6.78174443\n"\
+                  "QMMM:\n"\
+                  "QMMM: SCF Energy =      -16.03917358 KCal/mol,       -67.10790226 KJ/mol\n"\
+                  "QMMM: SCF Energy = Heat of formation\n"
+    input_stream = io.StringIO(test_string)
+    result = amber_out.find_scf_energy(input_stream)
+    answer = "-16.02468052\n-16.03917358\n"
+    assert result == answer
