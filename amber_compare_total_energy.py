@@ -1,7 +1,7 @@
 '''
 Functions used to compare amber output files
 '''
-import sys
+import argparse
 import amber_out
 import matplotlib.pyplot as plt
 
@@ -18,14 +18,14 @@ def compare_total_energies(file_1_stream, file_2_stream,
     plt.title(title)
     plt.show()
 
-FILE_1_FILENAME = str(sys.argv[1])
-FILE_2_FILENAME = str(sys.argv[2])
-try:
-    LABEL_1 = str(sys.argv[3])
-    LABEL_2 = str(sys.argv[4])
-except IndexError:
-    LABEL_1 = "File1"
-    LABEL_2 = "File2"
-FILE_1_STREAM = open(FILE_1_FILENAME, 'r')
-FILE_2_STREAM = open(FILE_2_FILENAME, 'r')
-compare_total_energies(FILE_1_STREAM, FILE_2_STREAM, LABEL_1, LABEL_2)
+parser = argparse.ArgumentParser()
+parser.add_argument("file1", help="The first file you want to parse for data")
+parser.add_argument("file2", help="The second file you want to parse for data")
+parser.add_argument("--file1_label", help="The label you want to give to data of the first file",
+                    default="File1")
+parser.add_argument("--file2_label", help="The label you want to give to data of the second file",
+                    default="File2")
+args=parser.parse_args()
+FILE_1_STREAM = open(args.file1, 'r')
+FILE_2_STREAM = open(args.file2, 'r')
+compare_total_energies(FILE_1_STREAM, FILE_2_STREAM, args.file_1_label, args.file_2_label)
