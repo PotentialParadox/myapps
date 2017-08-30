@@ -162,6 +162,7 @@ def run_ground_state_dynamics(input_ceon, user_input):
     Run the ground state trajectory that will be used to generate initial geometries
     for future calculations
     '''
+    print("!!!!!!!!!!!!!!!!!!!! Running Ground State Trajectory !!!!!!!!!!!!!!!!!!!!")
     input_ceon.set_n_steps(user_input.n_steps_gs)
     input_ceon.set_exc_state_propagate(0)
     input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_gs)
