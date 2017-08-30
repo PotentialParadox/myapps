@@ -1,25 +1,18 @@
+import argparse
 from calculate_spectra import calculate_spectra
 
-# Change here to the number of excited states propagated
-number_states = 5
-# Change here the file root name
-root_name = 'spectra_abs'
-# Change here if you want more points per gaussian ?
-number_gauss = 100
-# Change the parameter for full width at half max in eV
-full_width_half_max = 0.05
-# Change here of bins you wish to distribute over
-number_bins = 1000
-# Change here the minimum energy in (eV)
-x_minimum = 2.5
-# Change here the maximum energy in (eV)
-x_maximum = 4.1
-# Change here the input file
-file_input = root_name +'.input'
-# Change here the output file
-file_output = root_name + '.output'
+parser = argparse.ArgumentParser()
+parser.add_argument("--input", "-i", help="The input file", default="spectra_flu.in")
+parser.add_argument("--output", "-o", help="The output file", default="spectra_flu.out")
+parser.add_argument("--number_states", help="The number of excited states you want to extract",
+                    default=1, type=int)
+parser.add_argument("--number_gauss", help="The number of gaussians", default=100, type=int)
+parser.add_argument("--fwhm", help="Full witdh half max", default=0.05, type=float)
+parser.add_argument("--number_bins", help="The number of bins you wish to distribute over",
+                    default=1000, type=int)
+parser.add_argument("--xmin", help="The minimum energy in eV", default=2.0, type=float)
+parser.add_argument("--xmax", help="The maximum energy in eV", default=3.0, type=float)
+args = parser.parse_args()
 
-
-calculate_spectra(number_states, number_gauss, full_width_half_max, number_bins, x_minimum, x_maximum,
-                  file_input, file_output)
-
+calculate_spectra(args.number_states, args.number_gauss, args.fwhm, args.number_bins,
+                  args.xmin, args.xmax, args.input, args.output)
