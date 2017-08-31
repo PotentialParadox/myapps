@@ -132,7 +132,7 @@ def run_abs_snapshots(n_trajectories, n_frames, user_input, input_ceon):
         amber.input_roots = amber_inputs
         amber.output_roots = snap_singles
         amber.coordinate_files = snap_restarts
-        amber.prmtop_files = [""]*len(snap_singles)
+        amber.prmtop_files = ["m1.prmtop"]*len(snap_singles)
         amber.restart_roots = snap_singles
         amber.export_roots = snap_singles
         amber.run_amber(user_input.processors_per_node)
