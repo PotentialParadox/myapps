@@ -1,45 +1,51 @@
+import argparse
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.interpolate import spline
 
-# Change here the title of the graph
-graph_title = "Distryrylbenzene in vacuum"
-# Change here the number of states to display
-number_states = 2
-# Change here the file root for the file
-file_root = 'spectra_other'
-# Change to true if absorbance, false if fluorescence
-absorbance = True
+parser = argparse.ArgumentParser()
+parser.add_argument("--title", help="The title of the graph", default="Title")
+parser.add_argument("--number_states", help="The number of states you want to include.",
+                    default=1, type=int)
+parser.add_argument("--labels", "-l", help="labels of the data", default=[1], nargs="+")
+parser.add_argument("--inputfile", "-i", help="The input file", default="spectra_flu.output")
+parser.add_argument("--absorbance", "-a",
+                    help="Is the file absorbance (True) or Fluorescence (False)",
+                    default=False)
+parser.add_argument("--x_units", "-x", help="0-Ev or 1-nm", default=1, type=int)
+args = parser.parse_args()
 
+color_code = ['r', 'g', 'b', 'y', 'm']
 
-input_file = file_root + ".output"
+data = np.loadtxt(args.inputfile)
 
-color_code = ['g', 'r', 'b', 'y', 'm']
-
-data = np.loadtxt(input_file)
-
-nm_index = 1
 state_intensity_index_start = 2
-state_intensity_index_end = 2 + number_states
-x = data[:, nm_index]
+state_intensity_index_end = 2 + args.number_states
+x = data[:, args.x_units]
 ys = data[:, state_intensity_index_start:state_intensity_index_end]
 
-for i in range(number_states):
+for i in range(args.number_states):
     y = ys[:, i]
     color = color_code[i]
-    label = 'S' + str(i+1)
+    # label = 'S' + str(i+1)
+    label = args.labels[i]
     plt.plot(x, y, color=color, label=label)
 
-plt.xlabel('Wavelength, nm')
-if absorbance:
+if args.x_units == 0:
+    plt.xlabel('Energy, eV')
+    plt.gca().invert_xaxis()
+else:
+    plt.xlabel('Wavelength, nm')
+
+if args.absorbance:
     ylabel = 'Normalized Absorbance'
 else:
     ylabel = 'Normalized Fluorescence'
 
 plt.ylabel(ylabel)
-plt.title(graph_title)
+plt.title(args.title)
 plt.legend(loc=2)
-plt.savefig(file_root + '.png')
+plt.savefig(args.inputfile[:-7] + '.png')
 plt.show()
 
 
