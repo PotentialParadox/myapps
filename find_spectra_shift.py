@@ -10,7 +10,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--file1", help="The first file you want read the first state from")
-parser.add_argument("--file2", help="The first file you want read the first state from")
+parser.add_argument("--file2", help="The second file you want read the first state from")
 parser.add_argument("--unit", help="0-ev, 1-nm", type=int, default=0)
 args = parser.parse_args()
 
