@@ -50,7 +50,7 @@ def accumulate_flu_spectra(n_trajectories):
     for i in range(n_trajectories):
         amber_outfile = 'nasqm_flu_' + str(i+1) + ".out"
         input_stream = open(amber_outfile, 'r')
-        find_nasqm_excited_state(input_stream, output_stream, n_states=n_states)
+        find_nasqm_excited_state(input_stream, output_stream, states=[j for j in range(1, n_states+1)])
     output_string = output_stream.getvalue()
     output_stream.close()
     return output_string
@@ -64,7 +64,7 @@ def accumulate_abs_spectra(n_snapshots_gs, n_frames, n_states=20):
         for frame in range(n_frames):
             amber_out = "nasqm_abs_{}_{}.out".format(traj+1, frame+1)
             input_stream = open(amber_out, 'r')
-            find_nasqm_excited_state(input_stream, output_stream, n_states)
+            find_nasqm_excited_state(input_stream, output_stream, states=[j for j in range(1, n_states+1)])
             input_stream.close()
     output_string = output_stream.getvalue()
     output_stream.close()

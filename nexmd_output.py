@@ -29,7 +29,8 @@ class NexmdOutput:
 
     def find_omegas(self):
         file_stream = open(self.file_name, 'r')
-        omegas = amber_out.find_nasqm_excited_state(file_stream, None, self.n_excited_states)
+        omegas = amber_out.find_nasqm_excited_state(file_stream, None,
+                                                    range(1, self.n_excited_states+1))
         self.omegas = np.fromstring(omegas, dtype=float, sep=" ")
         return self.omegas
 
