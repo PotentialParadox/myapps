@@ -1,6 +1,7 @@
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import my_utils
 from scipy.interpolate import spline
 
 parser = argparse.ArgumentParser()
@@ -11,7 +12,7 @@ parser.add_argument("--labels", "-l", help="labels of the data", default=[1], na
 parser.add_argument("--inputfile", "-i", help="The input file", default="spectra_flu.output")
 parser.add_argument("--absorbance", "-a",
                     help="Is the file absorbance (True) or Fluorescence (False)",
-                    default=False)
+                    default="False")
 parser.add_argument("--x_units", "-x", help="0-Ev or 1-nm", default=1, type=int)
 args = parser.parse_args()
 
@@ -37,7 +38,7 @@ if args.x_units == 0:
 else:
     plt.xlabel('Wavelength, nm')
 
-if args.absorbance:
+if my_utils.str2bool(args.absorbance):
     ylabel = 'Normalized Absorbance'
 else:
     ylabel = 'Normalized Fluorescence'
