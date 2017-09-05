@@ -223,7 +223,7 @@ def run_absorption_snapshots(input_ceon, user_input):
     input_ceon.set_exc_state_propagate(user_input.n_abs_exc)
     input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_abs)
     input_ceon.set_exc_state_init(0)
-    input_ceon.set_verbosity(3)
+    input_ceon.set_verbosity(1)
     input_ceon.set_time_step(user_input.time_step)
     run_abs_snapshots(n_trajectories=user_input.n_snapshots_gs,
                       n_frames=user_input.n_frames_abs, user_input=user_input,
@@ -249,7 +249,7 @@ def run_excited_state_trajectories(input_ceon, user_input):
     input_ceon.set_exc_state_propagate(user_input.n_exc_states_propagate_ex_param)
     input_ceon.set_n_steps_to_print(user_input.n_steps_to_print_exc)
     input_ceon.set_exc_state_init(user_input.exc_state_init_ex_param)
-    input_ceon.set_verbosity(3)
+    input_ceon.set_verbosity(1)
     input_ceon.set_time_step(user_input.time_step)
     input_ceon.set_random_velocities(False)
     input_root = "nasqm_ground"
