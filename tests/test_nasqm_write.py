@@ -28,6 +28,16 @@ def test_strip_timedelay():
     assert results == '    2.70677444298323E+00    1.00507770698760E+00\n'\
                       '    2.50629011440210E+00    1.06776301983101E+00\n'
 
+def test_truncate_spectra():
+    '''
+    Test to see if truncate spectra removes the appropriate
+    data
+    '''
+    test_string = open("spectra_flu.input").read()
+    results = nasqm_write.truncate_spectra(test_string, 2, 0.5, 2)
+    assert results == '    2.76321917652115E+00    9.81624195302620E-01\n'\
+                      '    2.67137127196091E+00    1.01733845823091E+00\n'
+
 def test_strip_timedelay_exception():
     '''
     Test to see if exception is thown if timedelay is too large

@@ -40,6 +40,30 @@ def strip_timedelay(spectra_string, n_trajectories, time_step, time_delay):
             data2_ri += 1
     return numpy_to_specta_string(data2)
 
+def truncate_spectra(spectra_string, n_trajectories, time_step, time_delay):
+    '''
+    Truncate the spectra by a given time
+    Time is in fs
+    '''
+    data = np.fromstring(spectra_string, sep=' ')
+    n_rows = int(len(data) / 2)
+    n_elements_traj = int(n_rows / n_trajectories)
+    n_columns = 2
+    data = data.reshape((n_rows, n_columns))
+    n_rows_to_remove_traj = int(time_delay / time_step)
+    n_rows_to_remove = n_rows_to_remove_traj * n_trajectories
+    n_rows_data2 = n_rows - n_rows_to_remove
+    if n_rows_data2 < 0:
+        raise ValueError('Truncation time greater than the excited state runtime minus time delay.')
+    data2 = np.zeros((n_rows_data2, n_columns))
+    data2_ri = 0
+    for i, data_point in enumerate(data):
+        if i % n_elements_traj < n_elements_traj - n_rows_to_remove_traj:
+            data2[data2_ri][:] = data_point[:]
+            data2_ri += 1
+    return numpy_to_specta_string(data2)
+
+
 
 def accumulate_flu_spectra(n_trajectories):
     """
