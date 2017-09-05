@@ -36,7 +36,7 @@ class UserInput:
         # Do you want to collect the data from the absorption calculations?
         self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
-        self.run_excited_state_trajectories = True
+        self.run_excited_state_trajectories = False
         # Do you want to collect the data from the exctied state trajectory
         # calculations?
         self.run_fluorescence_collection = True
@@ -44,7 +44,7 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # further ground state dynamics
-        self.n_snapshots_gs = 8
+        self.n_snapshots_gs = 2
 
         # Change here the number of states you wish to
         # calculate in the absorption singlpoint calculations
@@ -53,28 +53,28 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 1
+        self.n_snapshots_ex = 16
 
         # Change here the time step that will be shared by
         # each trajectory
         self.time_step = 0.5  # fs
 
         # Change here the runtime of the initial ground state MD
-        self.ground_state_run_time = 2 # ps
+        self.ground_state_run_time = 5 # ps
 
         # Change here how often you want to print the ground state trajectory
-        self.n_steps_to_print_gs = 50
+        self.n_steps_to_print_gs = 10
 
         # Change here the runtime for the the trajectories
         # used to create calculated the absorption
-        self.abs_run_time = 50 # ps
+        self.abs_run_time = 5 # ps
 
         # Change here how often you want to print the absorption trajectories
         self.n_steps_to_print_abs = 50
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 0.01 # ps
+        self.exc_run_time = 8 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation
@@ -90,7 +90,8 @@ class UserInput:
         # from jumping from the ground state to the excited state.
         # We don't want to include this data in the calculation
         # of the fluorescence. We therefore set a time delay.
-        self.fluorescene_time_delay = 0 # fs
+        self.fluorescene_time_delay = 2000 # fs
+        self.fluorescene_time_truncation = 2000 # fs
 
         # Solvent Settings
         # This nasqm script will use cpptraj to include the nearest

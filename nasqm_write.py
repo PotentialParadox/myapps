@@ -64,7 +64,6 @@ def truncate_spectra(spectra_string, n_trajectories, time_step, time_delay):
     return numpy_to_specta_string(data2)
 
 
-
 def accumulate_flu_spectra(n_trajectories):
     """
     Create the spectra_flu.input file using the nasqm_flu_*.out files
@@ -112,6 +111,9 @@ def write_spectra_flu_input(user_input):
     stripped_fl_string = strip_timedelay(fluor_string, user_input.n_snapshots_ex,
                                          user_input.time_step,
                                          user_input.fluorescene_time_delay)
+    stripped_fl_string = truncate_spectra(fluor_string, user_input.n_snapshots_ex,
+                                          user_input.time_step,
+                                          user_input.fluorescene_time_truncation)
     open('spectra_flu.input', 'w').write(stripped_fl_string)
 
 
