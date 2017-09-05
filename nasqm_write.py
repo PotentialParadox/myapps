@@ -110,10 +110,10 @@ def write_spectra_flu_input(user_input):
     fluor_string = accumulate_flu_spectra(n_trajectories=user_input.n_snapshots_ex)
     stripped_fl_string = strip_timedelay(fluor_string, user_input.n_snapshots_ex,
                                          user_input.time_step,
-                                         user_input.fluorescene_time_delay)
+                                         user_input.fluorescence_time_delay)
     stripped_fl_string = truncate_spectra(fluor_string, user_input.n_snapshots_ex,
                                           user_input.time_step,
-                                          user_input.fluorescene_time_truncation)
+                                          user_input.fluorescence_time_truncation)
     open('spectra_flu.input', 'w').write(stripped_fl_string)
 
 
