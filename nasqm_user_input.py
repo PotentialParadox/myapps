@@ -36,7 +36,7 @@ class UserInput:
         # Do you want to collect the data from the absorption calculations?
         self.run_absorption_collection = False
         # Do you want to run the exctied state trajectories?
-        self.run_excited_state_trajectories = False
+        self.run_excited_state_trajectories = True
         # Do you want to collect the data from the exctied state trajectory
         # calculations?
         self.run_fluorescence_collection = True
@@ -53,7 +53,7 @@ class UserInput:
         # Change here the number of snapshots you wish to take
         # from the initial ground state trajectory to run the
         # new excited state dynamics
-        self.n_snapshots_ex = 16
+        self.n_snapshots_ex = 2 
 
         # Change here the time step that will be shared by
         # each trajectory
@@ -74,7 +74,7 @@ class UserInput:
 
         # Change here the runtime for the the trajectories
         # used to create calculated the fluorescence
-        self.exc_run_time = 8 # ps
+        self.exc_run_time = 1 # ps
 
         # Change here the number of excited states you
         # with to have in the CIS calculation
@@ -84,14 +84,14 @@ class UserInput:
         self.exc_state_init_ex_param = 1
 
         # Change here how often you want to print the excited state trajectories
-        self.n_steps_to_print_exc = 1
+        self.n_steps_to_print_exc = 10
 
         # Some time will be needed for the molecule to equilibrate
         # from jumping from the ground state to the excited state.
         # We don't want to include this data in the calculation
         # of the fluorescence. We therefore set a time delay.
-        self.fluorescene_time_delay = 2000 # fs
-        self.fluorescene_time_truncation = 2000 # fs
+        self.fluorescence_time_delay = 0 # fs
+        self.fluorescence_time_truncation = 0 # fs
 
         # Solvent Settings
         # This nasqm script will use cpptraj to include the nearest
