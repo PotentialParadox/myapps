@@ -6,7 +6,7 @@ import pytest
 import numpy as np
 import nasqm_cpptraj
 import nasqm_user_input
-import inputceon
+import pynasqm.inputceon as inputceon
 
 def setup_module(module):
     '''
