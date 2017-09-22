@@ -1,4 +1,4 @@
-from amber_out import find_dipoles
+from pynasqm.amberout import find_dipoles
 import numpy as np
 from my_math import quadratic_formula
 from my_constants import E0, KB, DEBYE_TO_COULOMBMETER, ANGSTROM_TO_METER

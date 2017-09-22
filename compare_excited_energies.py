@@ -2,7 +2,7 @@
 Functions used to compare amber output files
 '''
 import argparse
-import amber_out
+import pynasqm.amberout
 import numpy as np
 import matplotlib.pyplot as plt
 from my_utils import numpy_to_txt
@@ -13,8 +13,8 @@ def compare_excited_energies(time_step, n_steps, file_1_stream, file_2_stream,
     Plots a graph of the enegies of an excited state comparing two separate amber output files,
     time is in fs
     '''
-    file_1_energies_string = amber_out.find_excited_energies(file_1_stream, None, [state])
-    file_2_energies_string = amber_out.find_excited_energies(file_2_stream, None, [state])
+    file_1_energies_string = pynasqm.amberout.find_excited_energies(file_1_stream, None, [state])
+    file_2_energies_string = pynasqm.amberout.find_excited_energies(file_2_stream, None, [state])
     file_1_energies = np.fromstring(file_1_energies_string, sep="\n")[::step]
     file_2_energies = np.fromstring(file_2_energies_string, sep="\n")[::step]
     file_1 = open(file_1_label + ".energies", 'w')

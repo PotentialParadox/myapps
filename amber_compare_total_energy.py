@@ -2,7 +2,7 @@
 Functions used to compare amber output files
 '''
 import argparse
-import amber_out
+import pynasqm.amberout
 import matplotlib.pyplot as plt
 
 def compare_total_energies(file_1_stream, file_2_stream,
@@ -10,8 +10,8 @@ def compare_total_energies(file_1_stream, file_2_stream,
     '''
     Plots a graph of the total enegies comparing two separate amber output files
     '''
-    file_1_energies = amber_out.find_total_energies(file_1_stream)
-    file_2_energies = amber_out.find_total_energies(file_2_stream)
+    file_1_energies = pynasqm.amberout.find_total_energies(file_1_stream)
+    file_2_energies = pynasqm.amberout.find_total_energies(file_2_stream)
     plt.plot(file_1_energies, label=file_1_label)
     plt.plot(file_2_energies, label=file_2_label)
     title = "Total energy of " + file_1_label + " and " + file_2_label
