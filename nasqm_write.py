@@ -4,7 +4,7 @@ Functions that write outputs of the NASQM script
 import subprocess
 import io
 import numpy as np
-from amber_out import find_nasqm_excited_state, find_excited_energies
+from pynasqm.amberout import find_nasqm_excited_state, find_excited_energies
 
 
 def numpy_to_specta_string(numpy_data):

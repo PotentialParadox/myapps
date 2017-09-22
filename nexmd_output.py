@@ -2,7 +2,7 @@
 A class to contain the data use to compare ouputs from nexmd
 '''
 import io
-import amber_out
+import pynasqm.amberout as amber_out
 import numpy as np
 
 class NexmdOutput:
