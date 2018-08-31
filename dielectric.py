@@ -1,3 +1,9 @@
+'''
+Created by Dustin Tracy (2015)
+To use, run an AMBER md simulation (qm/mm) with the printdipole flag set to 2.
+Apply scrip to the output file.
+The Height Width and Volume can be found in the restart file at the bottom
+'''
 from pynasqm.amberout import find_dipoles
 import numpy as np
 from my_math import quadratic_formula
@@ -15,18 +21,14 @@ def calculate_dielectric(file_name, V_meters, T_kelvon):
     dipoles = find_dipoles(file_stream)
     dipoles = dipoles * DEBYE_TO_COULOMBMETER # C*m
 
-    std = np.std(dipoles)
-    std2 = std**2
+    dipoles_2 = np.power(dipoles, 2)
 
-    avg = np.average(dipoles)
-    avg2 = avg**2
-
-    dipole2 = std2 + avg2 # debye^2
+    expval_dipoles_2 = np.average(dipoles_2)
 
     # Right hand side denominator
     rhsd = 9 * E0 * V_meters * KB * T_kelvon # C^2 * N^-1 * m * J
     # Righ hand side
-    rhs = dipole2 / rhsd # N * m * J^-1 = 1 Good!
+    rhs = expval_dipoles_2 / rhsd # N * m * J^-1 = 1 Good!
 
     # The equation can be rewriten in the form ax^2 + bx + x with
     a = 2
@@ -34,13 +36,13 @@ def calculate_dielectric(file_name, V_meters, T_kelvon):
     c = -1
     possible_answer = quadratic_formula(a, b, c)
 
-    print(possible_answer[0])
+    print(possible_answer[0]*2)
 
 
-FILE_NAME = 'md_qmmm_amb.out'
+FILE_NAME = 'nasqm_abs_1.out'
 TEMPERATURE = 300
-HEIGHT = 36.62E-10 # Meter
-WIDTH = 37.693E-10 # Meter
-LENGTH = 45.684E-10 # Meter
+HEIGHT = 37E-10 # Meter
+WIDTH = 30E-10 # Meter
+LENGTH = 31-10 # Meter
 VOLUME = HEIGHT * WIDTH * LENGTH
 calculate_dielectric(FILE_NAME, VOLUME, TEMPERATURE)
