@@ -18,31 +18,23 @@ def calculate_dielectric(file_name, V_meters, T_kelvon):
     '''
     file_stream = open(file_name, 'r')
 
-    dipoles = find_dipoles(file_stream)
+    dipoles = find_dipoles(file_stream) # Debye
     dipoles = dipoles * DEBYE_TO_COULOMBMETER # C*m
+
+    s_exp_dipoles = np.power(np.average(dipoles),2)
 
     dipoles_2 = np.power(dipoles, 2)
 
     expval_dipoles_2 = np.average(dipoles_2)
-
-    # Right hand side denominator
-    rhsd = 9 * E0 * V_meters * KB * T_kelvon # C^2 * N^-1 * m * J
-    # Righ hand side
-    rhs = expval_dipoles_2 / rhsd # N * m * J^-1 = 1 Good!
-
-    # The equation can be rewriten in the form ax^2 + bx + x with
-    a = 2
-    b = -(1 + 9 * rhs)
-    c = -1
-    possible_answer = quadratic_formula(a, b, c)
-
-    print(possible_answer[0]*2)
+    stdev = expval_dipoles_2 - s_exp_dipoles
+    possible_answer = 1 + (expval_dipoles_2 - s_exp_dipoles) / (3.0 * E0 * V_meters * KB * T_kelvon)
+    print(possible_answer)
 
 
-FILE_NAME = 'nasqm_abs_1.out'
-TEMPERATURE = 300
-HEIGHT = 37E-10 # Meter
-WIDTH = 30E-10 # Meter
-LENGTH = 31-10 # Meter
+FILE_NAME = 'nasqm_ground.out'
+TEMPERATURE = 295
+HEIGHT = 35.4E-10 # Meter
+WIDTH = 39.7E-10 # Meter
+LENGTH = 39.3E-10 # Meter
 VOLUME = HEIGHT * WIDTH * LENGTH
 calculate_dielectric(FILE_NAME, VOLUME, TEMPERATURE)

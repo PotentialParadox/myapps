@@ -10,4 +10,3 @@ cm_to_si = 1.0E-2 # meters
 debye_to_si = 3.33564E-30 # Coulomb * m
 
 
-

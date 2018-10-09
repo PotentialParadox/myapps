@@ -2,7 +2,7 @@
 # ANSII graph output
 import numpy as np
 
-root_name = 'dg'
+root_name = ''
 
 data1 = np.loadtxt(root_name+'1.dat')
 data2 = np.loadtxt(root_name+'2.dat')
