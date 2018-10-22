@@ -63,4 +63,5 @@ args = parser.parse_args()
 DIPOLES = convert_to_debye(get_dipoles(args.prmtop, args.trajfile)) # Debye
 volume = product([a_to_m(x) for x in find_box(open('nasqm_ground.out','r'))]) # m^3
 temperature=300 # Kelvin
-d = [calculate_dielectric(DIPOLES[:x], volume, temperature) for x in range(1,len(DIPOLES))]
+begin = 1
+d = [calculate_dielectric(DIPOLES[:x], volume, temperature) for x in range(begin,len(DIPOLES))]
