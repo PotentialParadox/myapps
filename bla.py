@@ -13,17 +13,17 @@ def main():
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
         blas = np.load("bla_{}.npy".format(suffix))
-        bla = np.average(blas, axis=0)
-        plotter(bla, suffix, args.traj_time)
+        blas = np.average(blas, axis=0)
+        plotter(blas, suffix, args.traj_time)
     else:
-        d1 = np.average(getDistances(args.n_trajs, suffix, 6, 7), axis=0)
-        d2 = np.average(getDistances(args.n_trajs, suffix, 7, 8), axis=0)
-        d3 = np.average(getDistances(args.n_trajs, suffix, 8, 9), axis=0)
-        bla = ((d1+d3)/2) - d2
+        d1 = getDistances(args.n_trajs, suffix, 6, 7)
+        d2 = getDistances(args.n_trajs, suffix, 7, 8)
+        d3 = getDistances(args.n_trajs, suffix, 8, 9)
+        bla = np.subtract(np.true_divide(np.add(d1, d3), 2), d2)
         np.save("bla_{}.npy".format(suffix), bla)
 
 def getDistance(traj, suffix, atom1, atom2):
-    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
+    traj = pt.load('{}/nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
     return pt.distance(traj, '@{} @{}'.format(atom1, atom2))
 
 def getDistances(nTrajs, suffix, atom1, atom2):
