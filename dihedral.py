@@ -9,18 +9,19 @@ def main():
     parser.add_argument("n_trajs", help="number of trajectories", type=int)
     parser.add_argument("traj_time", help="time of each trajectory", type=float)
     parser.add_argument("--flu", help="apply to fluorescence", action="store_true")
-    parser.add_argument("--plot", help="print graph")
+    parser.add_argument("--plot", help="print graph", action="store_true")
     args = parser.parse_args()
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
         dihs = np.load("dihedral_{}.npy".format(suffix))
-        plotter(dihs, suffix, args.time)
+        dih = np.average(dihs, axis=0)
+        plotter(dih, suffix, args.traj_time)
     else:
-        dihs = np.average(getDihedrals(args.n_trajs, suffix, [16, 15, 14, 11]), axis=0)
+        dihs = getDihedrals(args.n_trajs, suffix, [16, 15, 14, 11])
         np.save("dihedral_{}.npy".format(suffix), dihs)
 
 def getDihedral(traj, suffix, atoms):
-    traj = pt.load('nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
+    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
     return dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
 
 def getDihedrals(nTrajs, suffix, atoms):
