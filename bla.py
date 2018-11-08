@@ -32,8 +32,13 @@ def getDistances(nTrajs, suffix, atom1, atom2):
 def plotter(bla, suffix, time):
     t = np.linspace(0, time, len(bla), endpoint=True)
     plt.plot(t, bla)
+    if suffix == 'abs':
+        suffix = 'S0'
+    else:
+        suffix = 'S1'
     plt.title("BLA {}".format(suffix))
     plt.xlabel("time ps")
+    plt.savefig("{}_bla".format(suffix))
     plt.show()
     print("Average Bla: {}A".format(np.average(bla)))
 
