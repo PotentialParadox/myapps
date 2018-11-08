@@ -23,7 +23,7 @@ def main():
         np.save("bla_{}.npy".format(suffix), bla)
 
 def getDistance(traj, suffix, atom1, atom2):
-    traj = pt.load('{}/nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
+    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
     return pt.distance(traj, '@{} @{}'.format(atom1, atom2))
 
 def getDistances(nTrajs, suffix, atom1, atom2):
