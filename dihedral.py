@@ -14,10 +14,14 @@ def main():
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
         dihs = np.load("dihedral_{}.npy".format(suffix))
-        dih = np.average(dihs, axis=0)
+        dih = dihedralAbs(np.average(dihs[:args.n_trajs], axis=0))
         plotter(dih, suffix, args.traj_time)
     else:
-        dihs = getDihedrals(args.n_trajs, suffix, [16, 15, 14, 11])
+        dihs1 = getDihedrals(args.n_trajs, suffix, [18, 17, 16, 15])
+        dihs2 = getDihedrals(args.n_trajs, suffix, [16, 15, 14, 13])
+        dihs3 = getDihedrals(args.n_trajs, suffix, [7, 8, 9, 10])
+        dihs4 = getDihedrals(args.n_trajs, suffix, [5, 6, 7, 8])
+        dihs = np.average(dihs1 + dihs2 + dihs3 + dihs4)
         np.save("dihedral_{}.npy".format(suffix), dihs)
 
 def getDihedral(traj, suffix, atoms):
@@ -33,8 +37,10 @@ def dihedralAbs(dihs):
 def plotter(dihs, suffix, time):
     t = np.linspace(0, time, len(dihs), endpoint=True)
     plt.plot(t, dihs)
+    suffix = 'S0' if suffix == 'abs' else 'S1'
     plt.title("Dihedral {}".format(suffix))
     plt.xlabel("time ps")
+    plt.savefig("{}_dihedral".format(suffix))
     plt.show()
     print("Average Dihedral: {} Degrees".format(np.average(dihs)))
 
