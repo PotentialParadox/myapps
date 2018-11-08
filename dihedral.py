@@ -14,22 +14,22 @@ def main():
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
         dihs = np.load("dihedral_{}.npy".format(suffix))
-        dih = dihedralAbs(np.average(dihs[:args.n_trajs], axis=0))
+        dih = np.average(dihs[:args.n_trajs], axis=0)
         plotter(dih, suffix, args.traj_time)
     else:
         dihs1 = getDihedrals(args.n_trajs, suffix, [18, 17, 16, 15])
         dihs2 = getDihedrals(args.n_trajs, suffix, [16, 15, 14, 13])
         dihs3 = getDihedrals(args.n_trajs, suffix, [7, 8, 9, 10])
         dihs4 = getDihedrals(args.n_trajs, suffix, [5, 6, 7, 8])
-        dihs = np.average(dihs1 + dihs2 + dihs3 + dihs4)
+        dihs = np.true_divide(np.add(np.add(np.add(dihs1, dihs2), dihs3), dihs4), 4)
         np.save("dihedral_{}.npy".format(suffix), dihs)
 
-def getDihedral(traj, suffix, atoms):
-    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
+def getDihedral(suffix, traj, atoms):
+    traj = pt.load('nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
     return dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
 
 def getDihedrals(nTrajs, suffix, atoms):
-    return [getDihedral(traj, suffix, atoms) for traj in range(1, nTrajs+1)]
+    return np.array([getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)])
 
 def dihedralAbs(dihs):
     return [min(abs(di), abs(180-abs(di))) for di in dihs]
