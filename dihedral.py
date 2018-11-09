@@ -18,23 +18,24 @@ def main():
         dih = np.average(dihs[:args.n_trajs], axis=0)
         plotter(dih, suffix, args.traj_time)
     else:
-        dihs = getDihedrals(args.n_trajs, suffix, [[15, 16, 17, 22],
-                                                    [11, 14, 15, 16],
-                                                    [7, 8, 9, 12],
-                                                    [2, 4, 7, 8]])
-        dihs_average = reduceDihs(dihs)
+        dihs = getDihedrals(args.n_trajs, suffix, [[22, 23, 24, 35],
+                                                    [18, 21, 22, 23],
+                                                    [19, 9, 8, 7],
+                                                    [8, 7, 4, 2]
+    ])
+        print(dihs.shape)
+        dihs_average = np.average(dihs, axis=1)
+        print(dihs_average.shape)
         np.save("dihedral_{}.npy".format(suffix), dihs_average)
 
-def reduceDihs(dihs):
-    return np.true_divide(reduce(np.add, dihs), len(dihs))
 
 def getDihedral(suffix, traj, atomss):
-    traj = pt.load('nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
+    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
     return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
             for atoms in atomss]
 
 def getDihedrals(nTrajs, suffix, atoms):
-    return [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)]
+    return np.array([getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)])
 
 def dihedralAbs(dihs):
     return [min(abs(di), abs(180-abs(di))) for di in dihs]
