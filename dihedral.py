@@ -1,5 +1,6 @@
-import pytraj as pt
 import numpy as np
+import pytraj as pt
+from functools import reduce
 import matplotlib.pyplot as plt
 import argparse
 
@@ -17,19 +18,23 @@ def main():
         dih = np.average(dihs[:args.n_trajs], axis=0)
         plotter(dih, suffix, args.traj_time)
     else:
-        dihs1 = getDihedrals(args.n_trajs, suffix, [18, 17, 16, 15])
-        dihs2 = getDihedrals(args.n_trajs, suffix, [16, 15, 14, 13])
-        dihs3 = getDihedrals(args.n_trajs, suffix, [7, 8, 9, 10])
-        dihs4 = getDihedrals(args.n_trajs, suffix, [5, 6, 7, 8])
-        dihs = np.true_divide(np.add(np.add(np.add(dihs1, dihs2), dihs3), dihs4), 4)
-        np.save("dihedral_{}.npy".format(suffix), dihs)
+        dihs = getDihedrals(args.n_trajs, suffix, [[15, 16, 17, 22],
+                                                    [11, 14, 15, 16],
+                                                    [7, 8, 9, 12],
+                                                    [2, 4, 7, 8]])
+        dihs_average = reduceDihs(dihs)
+        np.save("dihedral_{}.npy".format(suffix), dihs_average)
 
-def getDihedral(suffix, traj, atoms):
-    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
-    return dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
+def reduceDihs(dihs):
+    return np.true_divide(reduce(np.add, dihs), len(dihs))
+
+def getDihedral(suffix, traj, atomss):
+    traj = pt.load('nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
+    return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
+            for atoms in atomss]
 
 def getDihedrals(nTrajs, suffix, atoms):
-    return np.array([getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)])
+    return [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)]
 
 def dihedralAbs(dihs):
     return [min(abs(di), abs(180-abs(di))) for di in dihs]
