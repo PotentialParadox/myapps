@@ -20,10 +20,14 @@ def main():
     dipoless = get_dipoles(args.n_trajs, suffix)
     if args.average:
         print(average_dipole(dipoless))
+    if args.mags:
+        print_mags(dipoless)
 
-def average_dipole(dipoles):
-    print(diMags(dipoles))
-    return np.average(diMags(dipoles))
+def print_mags(dipoless):
+    print(np.average(diMags(dipoless), axis=0))
+
+def average_dipole(dipoless):
+    return np.average(diMags(dipoless))
 
 def diMags(dipoless):
     return np.array([[np.linalg.norm(x) for x in dipoles] for dipoles in dipoless])
@@ -33,7 +37,8 @@ def get_dipoles(nTrajs, suffix):
 
 def get_dipole(traj, suffix):
     traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
-    return pt.analysis.vector.dipole(traj)
+    stripped_traj = pt.strip(traj, "!:1")
+    return pt.analysis.vector.dipole(stripped_traj)
 
 def convert_to_debye(xss):
     return np.array([[x*AE_TO_DEBYE for x in xs] for xs in xss])
