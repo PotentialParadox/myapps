@@ -29,8 +29,11 @@ def main():
 
 
 def getDihedral(suffix, traj, atomss):
-    traj = pt.load('nasqm_{}_{}.nc'.format(suffix, traj), top='m1.prmtop')
-    return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0], atoms[1], atoms[2], atoms[3])))
+    traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
+    return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0],
+                                                                   atoms[1],
+                                                                   atoms[2],
+                                                                   atoms[3])))
             for atoms in atomss]
 
 def getDihedrals(nTrajs, suffix, atoms):
