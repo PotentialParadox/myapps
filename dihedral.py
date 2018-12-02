@@ -37,7 +37,9 @@ def getDihedral(suffix, traj, atomss):
             for atoms in atomss]
 
 def getDihedrals(nTrajs, suffix, atoms):
-    return np.array([getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)])
+    dihs = [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)]
+    ll = max([len(x) for x in dihs])
+    return np.array([x for x in dihs if len(x) == ll])
 
 def dihedralAbs(dihs):
     return [min(abs(di), 180-abs(di)) for di in dihs]
