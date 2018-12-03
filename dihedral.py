@@ -38,8 +38,8 @@ def getDihedral(suffix, traj, atomss):
 
 def getDihedrals(nTrajs, suffix, atoms):
     dihs = [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)]
-    ll = max([len(x) for x in dihs])
-    return np.array([x for x in dihs if len(x) == ll])
+    ll = max([len(x[0]) for x in dihs])
+    return np.array([x for x in dihs if len(x[0]) == ll])
 
 def dihedralAbs(dihs):
     return [min(abs(di), 180-abs(di)) for di in dihs]
