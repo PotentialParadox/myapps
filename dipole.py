@@ -23,6 +23,7 @@ def main():
     if args.parse:
         print_dipoless(get_dipoles(args.n_trajs, suffix), suffix)
     dipoless = load_dipoless(suffix)
+    print([len(dip) for dip in dipoless])
     if args.plot:
         plot_dipoles(traj_average(dipoless), args.traj_time)
 
@@ -30,7 +31,14 @@ def print_dipoless(dipoless, suffix):
     np.save("dipoles_{}.npy".format(suffix), dipoless)
 
 def get_dipoles(nTrajs, suffix):
-    return convert_to_debye(np.array([get_solvent_dipoles(traj, suffix) for traj in range(1, nTrajs+1)]))
+    return convert_to_debye(completed(foreach_traj(get_solvent_dipoles, nTrajs, suffix)))
+
+def completed(trajs):
+    maxlen = max([len(x) for x in trajs])
+    return [traj for traj in trajs if len(traj) == maxlen]
+
+def foreach_traj(func, nTrajs, suffix):
+    return np.array([func(traj, suffix) for traj in range(1, nTrajs+1)])
 
 def convert_to_debye(xss):
     return np.array([[x*AE_TO_DEBYE for x in xs] for xs in xss])
