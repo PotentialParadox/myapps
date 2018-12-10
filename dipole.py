@@ -18,14 +18,14 @@ def main():
     parser.add_argument("--average", help="print average dipole", action="store_true")
     parser.add_argument("--plot", help="plot dipole vs time", action="store_true")
     parser.add_argument("--parse", help="parse data from amber outs", action="store_true")
+    parser.add_argument("--molecule", help="the name of the molecule you are using", default="Molecule")
     args = parser.parse_args()
     suffix = 'flu' if args.flu else 'abs'
     if args.parse:
         print_dipoless(get_dipoles(args.n_trajs, suffix), suffix)
     dipoless = load_dipoless(suffix)
-    print([len(dip) for dip in dipoless])
     if args.plot:
-        plot_dipoles(traj_average(dipoless), args.traj_time)
+        plot_dipoles(traj_average(dipoless), args.traj_time, args.molecule, suffix)
 
 def print_dipoless(dipoless, suffix):
     np.save("dipoles_{}.npy".format(suffix), dipoless)
@@ -55,10 +55,30 @@ def get_traj(traj, suffix):
 def load_dipoless(suffix):
     return np.load("dipoles_{}.npy".format(suffix))
 
-def plot_dipoles(dips, traj_time):
+def plot_dipoles(dips, traj_time, molecule, suffix):
     t = np.linspace(0, traj_time, len(dips), endpoint=True)
-    plt.plot(t, split_dips(dips, 0))
+    plot_xyzs(dips, t, molecule, suffix)
+    plot_magnitudes(dips, t, molecule, suffix)
+    plt.legend()
     plt.show()
+
+def plot_xyzs(dips, t, molecule, suffix):
+    plt.plot(t, split_dips(dips, 0), label='x')
+    plt.plot(t, split_dips(dips, 1), label='y')
+    plt.plot(t, split_dips(dips, 2), label='y')
+    state = "S1" if suffix == 'flu' else "S0"
+    plt.title(plot_title(molecule, state))
+    plt.xlabel("Time Ps")
+
+def plot_magnitudes(dips, t, molecule, suffix):
+    mags = get_magnitudes(dips)
+    plt.plot(t, mags, label='magnitude')
+
+def get_magnitudes(dips):
+    return [np.linalg.norm(dip) for dip in dips]
+
+def plot_title(molecule, state):
+    return "Dipole vs Time of {} in State {}".format(molecule, state)
 
 def split_dips(dips, index):
     return [dip[index] for dip in dips]
