@@ -56,7 +56,7 @@ def calculate_dielectric(dipoles, V_meters, T_kelvon):
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-o", "--amberout", help="Amber output file", default="nasqm_ground.out")
-parser.add_argument("-x", "--trajfile", help="Amber's trajectory file", default="nasqm_ground.nc")
+parser.add_argument("-x", "--trajfile",help="Amber's trajectory file", default="nasqm_ground.nc")
 parser.add_argument("-p", "--prmtop", help="Amber's top file", default="m1.prmtop")
 args = parser.parse_args()
 
