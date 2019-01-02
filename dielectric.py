@@ -12,6 +12,7 @@ import argparse
 import operator
 from my_math import quadratic_formula
 from my_constants import E0, KB, AE_TO_COULOMBMETER, ANGSTROM_TO_METER, AE_TO_DEBYE
+import pytraj as pt
 
 def product(xs):
     return reduce(operator.mul, xs, 1)
@@ -26,18 +27,7 @@ def dipole_magnitudes(dipoles):
     return np.array([np.linalg.norm(x) for x in dipoles])
 
 def get_dipoles(parmtop, trajectory_file):
-    command = bytes("parm {}\n"\
-                    "trajin {}\n"\
-                    "vector ve1 (:*) dipole out dipole.out\n"\
-                    "run\n"\
-                    "quit\n".format(parmtop, trajectory_file), 'utf-8')
-    proc = Popen(["cpptraj"], stdout=PIPE, stdin=PIPE, stderr=STDOUT)
-    cpptraj_stdout = proc.communicate(input=command)[0]
-    lines = open('dipole.out','r').readlines()
-    dipole_file = "".join(lines[1::100])
-    data = np.fromstring(dipole_file, sep=" ")
-    data = np.reshape(data, (-1,7))
-    return data[:,1:4]
+    return pt.analysis.vector.dipole(trajectory_file, top=parmtop)
 
 def convert_to_debye(xs):
     return [[y*AE_TO_COULOMBMETER for y in x] for x in xs]
