@@ -17,7 +17,6 @@ def main():
     parser.add_argument("n_trajs", help="number of trajectories", type=int)
     parser.add_argument("traj_time", help="time of each trajectory", type=float)
     parser.add_argument("--endpoints", help="atomIDs of the edges of the molecule", type=int, nargs="+", default=[1])
-    parser.add_argument("--solvents", help="lists of solvent resdIDs", type=int, nargs="+", default=[1])
     parser.add_argument("--flu", help="apply to fluorescence", action="store_true")
     parser.add_argument("--plot", help="plot dipole vs time", action="store_true")
     parser.add_argument("--molecule", help="the name of the molecule you are using", default="Molecule")
