@@ -71,6 +71,7 @@ def residueMask(residueID):
     return ':{}'.format(residueID)
 
 def residuesDotvsTime(trajID, suffix, index1, index2):
+    print(trajectory(suffix, trajID))
     return np.array([residueDotvsTime(trajectory(suffix, trajID), index1, index2, resID)
                      for resID in getClosests(suffix, trajID)])
 
