@@ -23,6 +23,7 @@ def main():
         np.save("bla_{}.npy".format(suffix), bla)
 
 def getDistance(traj, suffix, atom1, atom2):
+    print('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj))
     traj = pt.load('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj), top='m1.prmtop')
     return pt.distance(traj, '@{} @{}'.format(atom1, atom2))
 
@@ -30,7 +31,6 @@ def getDistances(nTrajs, suffix, atom1, atom2):
     return [getDistance(traj, suffix, atom1, atom2) for traj in range(1, nTrajs+1)]
 
 def plotter(dss, suffix, time):
-    print(dss.shape)
     d1s = dss[0]
     d2s = dss[1]
     d3s = dss[2]
