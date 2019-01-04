@@ -9,18 +9,25 @@ def main():
     parser.add_argument("traj_time", help="time of each trajectory", type=float)
     parser.add_argument("--flu", help="apply to fluorescence", action="store_true")
     parser.add_argument("--plot", help="print graph", action="store_true")
+    parser.add_argument("--solvent", help="solvent used in calculation", default="")
     args = parser.parse_args()
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
-        dss = np.load("bla_{}.npy".format(suffix))
-        dss = np.average(dss, axis=1)
-        plotter(dss, suffix, args.traj_time)
+        dss = remove_failures(np.load("bla_{}.npy".format(suffix)))
+        plotter(dss, suffix, args.traj_time, args.solvent)
     else:
         d1 = getDistances(args.n_trajs, suffix, 6, 7)
         d2 = getDistances(args.n_trajs, suffix, 7, 8)
         d3 = getDistances(args.n_trajs, suffix, 8, 9)
         bla = np.array([d1, d2, d3])
         np.save("bla_{}.npy".format(suffix), bla)
+
+def remove_failures(dss):
+    nsteps = max([len(x) for x in dss[0]])
+    result = []
+    for distance in dss:
+        result.append([traj for traj in distance if len(traj) == nsteps])
+    return np.array(result)
 
 def getDistance(traj, suffix, atom1, atom2):
     print('{}/nasqm_{}_{}.nc'.format(traj, suffix, traj))
@@ -30,10 +37,10 @@ def getDistance(traj, suffix, atom1, atom2):
 def getDistances(nTrajs, suffix, atom1, atom2):
     return [getDistance(traj, suffix, atom1, atom2) for traj in range(1, nTrajs+1)]
 
-def plotter(dss, suffix, time):
-    d1s = dss[0]
-    d2s = dss[1]
-    d3s = dss[2]
+def plotter(dss, suffix, time, solvent):
+    d1s = np.average(dss[0], axis=0)
+    d2s = np.average(dss[1], axis=0)
+    d3s = np.average(dss[2], axis=0)
     d1 = np.average(d1s[-100:])
     d2 = np.average(d2s[-100:])
     d3 = np.average(d3s[-100:])
@@ -43,6 +50,7 @@ def plotter(dss, suffix, time):
     print("d1+d2/2", (d1+d3)/2)
     print("bla", (d1+d3)/2 - d2)
     t = np.linspace(0, time, len(d1s), endpoint=True)
+    d1sa = np.average(d1s, axis=0)
     plt.plot(t, d1s)
     plt.plot(t, d2s)
     plt.plot(t, d3s)
@@ -54,7 +62,7 @@ def plotter(dss, suffix, time):
         suffix = 'S0'
     else:
         suffix = 'S1'
-    plt.title("vac BLA {}".format(suffix))
+    plt.title("{} BLA {}".format(solvent, suffix))
     plt.xlabel("time ps")
     plt.savefig("{}_bla".format(suffix))
     plt.show()
