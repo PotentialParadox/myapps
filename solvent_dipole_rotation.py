@@ -72,7 +72,7 @@ def residueMask(residueID):
 
 def residuesDotvsTime(trajID, suffix, index1, index2):
     return np.array([residueDotvsTime(trajectory(suffix, trajID), index1, index2, resID)
-                     for resID in getClosests(trajID)])
+                     for resID in getClosests(suffix, trajID)])
 
 def averageResiduesDotvsTime(trajID, suffix, index1, index2):
     '''
@@ -133,9 +133,9 @@ def trajectory(suffix, index):
 def closestOutput(index):
     return "{}/closest_{}.txt".format(index, index)
 
-def getClosests(index):
+def getClosests(suffix, index):
     p_mask = re.compile("qmmask=':1,(.*)',")
     return [int(x) for x in
-            re.findall(p_mask, open('{}/nasqm_abs_{}.in'.format(index, index), 'r').read())[0].split(',')]
+            re.findall(p_mask, open('{}/nasqm_{}_{}.in'.format(index, suffix, index), 'r').read())[0].split(',')]
 
 main()
