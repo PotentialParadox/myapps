@@ -19,16 +19,16 @@ def main():
     parser.add_argument("--endpoints", help="atomIDs of the edges of the molecule", type=int, nargs="+", default=[1])
     parser.add_argument("--flu", help="apply to fluorescence", action="store_true")
     parser.add_argument("--plot", help="plot dipole vs time", action="store_true")
-    parser.add_argument("--molecule", help="the name of the molecule you are using", default="Molecule")
+    parser.add_argument("--solvent", help="the name of the molecule you are using", default="Molecule")
     parser.add_argument("--parse", help="parse data from amber outs", action="store_true")
     args = parser.parse_args()
     suffix = 'flu' if args.flu else 'abs'
     if args.parse:
         writeDipoleDots(dipoleDots(args.n_trajs, suffix, args.endpoints[0], args.endpoints[1]), suffix)
-    dipdots = loadDipoleDots(suffix)
+    dipdots = loadDipoleDots(suffix)[:args.n_trajs]
     print(dipdots.shape)
     if args.plot:
-        plot_dipoles(traj_average(dipdots), traj_std(dipdots), args.traj_time, args.molecule, suffix)
+        plot_dipoles(traj_average(dipdots), traj_std(dipdots), args.traj_time, args.solvent, suffix)
 
 def plot_dipoles(dips, dipsstd, traj_time, molecule, suffix):
     t = np.linspace(0, traj_time, len(dips), endpoint=True)
@@ -62,16 +62,15 @@ def dipoleDots(nTrajs, suffix, index1, index2):
     '''
     Int -> String -> Int -> Int -> [Float][trajs][time]
     '''
-    return convert_to_debye(completed(foreach_traj(averageResiduesDotvsTime, nTrajs, suffix, index1, index2)))
+    return completed(foreach_traj(averageResiduesDotvsTime, nTrajs, suffix, index1, index2))
 
-def soluteVector(traj, index1, index2):
-    return np.array([frame[index2] - frame[index1] for frame in traj])
+def soluteEndpointsvsTime(traj, index1, index2):
+    return np.array([(frame[index1], frame[index2]) for frame in traj])
 
 def residueMask(residueID):
     return ':{}'.format(residueID)
 
 def residuesDotvsTime(trajID, suffix, index1, index2):
-    print(trajectory(suffix, trajID))
     return np.array([residueDotvsTime(trajectory(suffix, trajID), index1, index2, resID)
                      for resID in getClosests(suffix, trajID)])
 
@@ -81,17 +80,54 @@ def averageResiduesDotvsTime(trajID, suffix, index1, index2):
     '''
     return np.average(residuesDotvsTime(trajID, suffix, index1, index2), axis=0)
 
-def residueDipolevsTime(traj, resID):
+def normalizedResidueDipolevsTime(traj, resID):
     '''
     Int -> String -> Int -> Int -> [Float][solvent][time]
     '''
-    return pt.analysis.vector.dipole(traj[residueMask(resID)])
+    dipole = pt.analysis.vector.dipole(traj[residueMask(resID)])
+    return normalizeVectors(dipole)
+
+def normalizeVectors(vecs):
+    norms = np.array([np.linalg.norm(x) for x in vecs])
+    return np.array([np.divide(dip, norm) for (dip, norm) in zip(vecs, norms)])
 
 def residueDotvsTime(traj, index1, index2, resID):
-    return [np.dot(solute, solvent) for (solute, solvent) in
-            zip(soluteVector(traj, index1, index2), residueDipolevsTime(traj, resID))]
+    return [residueDot(soluteEndpoints, solventCenter, normalizedSolventDipole)
+            for (soluteEndpoints, solventCenter, normalizedSolventDipole) in
+            zip(soluteEndpointsvsTime(traj, index1, index2), centerofMassvsTime(traj, resID),
+                normalizedResidueDipolevsTime(traj, resID))]
+
+def centerofMassvsTime(traj, resID):
+    '''
+    [pytrajTraj] -> Int -> [Float]
+    Given a pytraj trajectory and a residue ID return the center of mass of the residue vs time
+    '''
+    return pt.center_of_mass(traj[residueMask(resID)])
+
+def residueDot(soluteEndpoints, solventCenter, normalizedSolventDipole):
+    '''
+    ([Float], [Float]) -> [Float] -> [Float] -> Float
+    Given solute endpoints, the center of geometry of the solvent, and the normalized dipole
+    of the solvent return the dot product between the dipole and the shortest line from the center of geometry
+    of the solvent to the line created by the solute endpoints
+    '''
+    return np.dot(normalizedSolventDipole, normalizedShortestVec(solventCenter, soluteEndpoints))
+
+def normalizedShortestVec(solventCenter, soluteEndpoints):
+    '''
+    [Float] -> ([Float], [Float]) -> [Float]
+    Given the center of mass of the solvent and the endpoints of the solute return the direction of
+    the shortest distance between the solvent and the line of the solute
+    '''
+    cross = np.cross(soluteVector(soluteEndpoints), solventCenter - soluteEndpoints[0])
+    shortest_line = np.cross(cross, soluteVector(soluteEndpoints))
+    return np.divide(shortest_line, np.linalg.norm(shortest_line))
+
+def soluteVector(soluteEndpoints):
+    return soluteEndpoints[1] - soluteEndpoints[0]
 
 def trajectory(suffix, index):
+    print('{}/nasqm_{}_{}.nc'.format(index, suffix, index))
     return pt.iterload('{}/nasqm_{}_{}.nc'.format(index, suffix, index), top='{}/m1.prmtop'.format(index))
 
 def closestOutput(index):
