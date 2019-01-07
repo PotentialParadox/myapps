@@ -72,7 +72,16 @@ def residueMask(residueID):
 
 def residuesDotvsTime(trajID, suffix, index1, index2):
     return np.array([residueDotvsTime(trajectory(suffix, trajID), index1, index2, resID)
-                     for resID in getClosests(suffix, trajID)])
+                     for resID in sharedClosests(trajID)])
+
+def sharedClosests(trajID):
+    closest_abs = getClosests('abs', trajID)
+    closest_flu = getClosests('flu', trajID)
+    print(shared(closest_abs, closest_flu))
+    return shared(closest_abs, closest_flu)
+
+def shared(a, b):
+    return [x for x in a if x in b]
 
 def averageResiduesDotvsTime(trajID, suffix, index1, index2):
     '''
