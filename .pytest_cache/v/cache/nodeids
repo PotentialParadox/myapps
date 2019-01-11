@@ -1,0 +1,10 @@
+[
+  "tests/test_my_math.py::test_quadratic_formula",
+  "tests/test_my_utils.py::test_numpy_to_txt_1",
+  "tests/test_my_utils.py::test_numpy_to_txt_1f",
+  "tests/test_my_utils.py::test_numpy_to_txt_2f",
+  "tests/test_nexmd_output.py::test_find_es_energies",
+  "tests/test_nexmd_output.py::test_find_gs_energies",
+  "tests/test_nexmd_output.py::test_find_omegas",
+  "tests/test_nexmd_output.py::test_find_orbitals"
+]
