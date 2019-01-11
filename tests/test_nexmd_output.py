@@ -3,20 +3,20 @@ Unit tests for NexmdOuput
 '''
 import os
 import pytest
-from nexmd_output import NexmdOutput
+from python_scripts.libnexmdoutput import NexmdOutput
 import numpy as np
 
 def setup_module(module):
     '''
     Switch to test directory
     '''
-    os.chdir("tests")
+    os.chdir("tests/nexmdoutput")
 
 def teardown_module(module):
     '''
     Return to main directory
     '''
-    os.chdir("..")
+    os.chdir("../..")
 
 @pytest.fixture
 def nexmdoutput():

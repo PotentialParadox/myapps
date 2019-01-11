@@ -1,7 +1,7 @@
 '''
 Unit tests for my_math
 '''
-import my_math
+import python_scripts.libmymath as my_math
 
 def test_quadratic_formula():
     '''
