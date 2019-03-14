@@ -13,6 +13,7 @@ def main():
     suffix = 'flu' if args.flu else 'abs'
     if args.plot:
         dihs = np.load("dihedral_{}.npy".format(suffix))
+        print("dihss", dihs.shape)
         dih = np.average(dihs[:args.n_trajs], axis=0)
         window_width = 1
         cumsum_vec = np.cumsum(np.insert(dih, 0, 0))
