@@ -11,5 +11,7 @@ setup(
    scripts=[
             'scripts/dipole.py',
             'scripts/solvent_dipole_rotation.py',
+            'scripts/dihedral.py',
+            'scripts/bla.py',
            ]
 )
