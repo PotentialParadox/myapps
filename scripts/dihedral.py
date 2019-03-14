@@ -20,7 +20,8 @@ def main():
         ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
         plotter(ma_vec, suffix, args.traj_time, args.solvent)
     else:
-        dihs = getDihedrals(args.n_trajs, suffix, [[22, 23, 24, 35]])
+        dihs = getDihedrals(args.n_trajs, suffix, [[18, 17, 16, 15],
+                                                   [16, 15, 14, 13]])
         print(dihs.shape)
         dihs_average = np.average(dihs, axis=1)
         print(dihs_average.shape)
