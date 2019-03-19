@@ -4,7 +4,9 @@ from functools import reduce
 import matplotlib.pyplot as plt
 
 def getDihedral(suffix, traj, atomss):
-    traj = pt.load('{0}/traj_{1}/nasqm_{0}_{1}.nc'.format(suffix, traj), top='m1.prmtop')
+    traj_file = '{0}/traj_{1}/nasqm_{0}_{1}.nc'.format(suffix, traj)
+    print(traj_file)
+    traj = pt.load(traj_file, top='m1.prmtop')
     return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0],
                                                                    atoms[1],
                                                                    atoms[2],
