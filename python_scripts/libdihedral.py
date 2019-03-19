@@ -1,6 +1,6 @@
+import os
 import numpy as np
 import pytraj as pt
-from functools import reduce
 import matplotlib.pyplot as plt
 
 def getDihedral(suffix, traj, atomss):
@@ -13,8 +13,13 @@ def getDihedral(suffix, traj, atomss):
                                                                    atoms[3])))
             for atoms in atomss]
 
+def finished(suffix, traj):
+    filename = "{0}/traj_{1}/nasqm_{0}_{1}.nc".format(suffix, traj)
+    return os.path.isfile(filename)
+
 def getDihedrals(nTrajs, suffix, atoms):
-    dihs = [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)]
+    dihs = [getDihedral(suffix, traj, atoms) for traj in range(1, nTrajs+1)
+            if finished(suffix, traj)]
     ll = max([len(x[0]) for x in dihs])
     return np.array([x for x in dihs if len(x[0]) == ll])
 
