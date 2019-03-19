@@ -11,10 +11,12 @@ def main():
     parser.add_argument("--solvent", help="solvent used in calculation", default="")
     parser.add_argument("--debug", action="store_true")
     args = parser.parse_args()
-    suffix = 'flu' if args.flu else 'abs'
+    suffix = "flu" if args.flu else "abs"
     if args.plot:
-        dss = remove_failures(np.load("bla_{}.npy".format(suffix)))
-        plotter(dss[:, :args.n_trajs, ::1], suffix, args.traj_time, args.solvent)
+        dss_s0 = remove_failures(np.load("bla_abs.npy"))
+        dss_s1 = remove_failures(np.load("bla_flu.npy"))
+        plotter(dss_s0[:, :args.n_trajs, ::1], dss_s1[:, :args.n_trajs, ::1],
+                args.traj_time, args.solvent)
     else:
         d1 = getDistances(args.n_trajs, suffix, 17, 16)
         d2 = getDistances(args.n_trajs, suffix, 16, 15)

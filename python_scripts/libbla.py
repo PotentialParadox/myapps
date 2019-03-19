@@ -26,53 +26,73 @@ def getDistances(nTrajs, suffix, atom1, atom2):
     return [getDistance(traj, suffix, atom1, atom2) for traj in range(1, nTrajs+1)
             if finished(suffix, traj)]
 
-def plotter(dss, suffix, time, solvent):
-    d1s = np.average(dss[0], axis=0)
-    d2s = np.average(dss[1], axis=0)
-    d3s = np.average(dss[2], axis=0)
-    timestep = time / len(d1s) * 1e-12
+def calc_bla(d1, d2, d3):
+    return np.subtract(np.true_divide(np.add(d1, d3), 2), d2)
 
-    print_averages(d1s, d2s, d3s, timestep)
+def seperate_bondlengths(dss):
+    return (np.average(dss[0], axis=0), np.average(dss[1], axis=0), np.average(dss[2], axis=0))
+
+def plotter(dss_s0, dss_s1, time, solvent):
+    (d1s_s0, d2s_s0, d3s_s0) = seperate_bondlengths(dss_s0)
+    (d1s_s1, d2s_s1, d3s_s1) = seperate_bondlengths(dss_s1)
+    timestep = time / len(d1s_s0) * 1e-12
+    bla_s0 = calc_bla(d1s_s0, d2s_s0, d3s_s0)
+    bla_s1 = calc_bla(d1s_s1, d2s_s1, d3s_s1)
+
+    print("S0 info")
+    print_averages(d1s_s0, d2s_s0, d3s_s0, timestep)
+    print("S1 info")
+    print_averages(d1s_s1, d2s_s1, d3s_s1, timestep)
 
     sns.set()
     sns.set_style("white")
     sns.set_style("ticks")
 
-    fig1, ax1 = plt.subplots()
-    plot_fourier(ax1, timestep, d1s)
+    fig1, ax1 = plt.subplots(2)
+    plot_fourier(ax1[1], timestep, d1s_s0, "S0")
+    plot_fourier(ax1[0], timestep, d1s_s1, "S1")
+    ax1[1].set_xlabel("cm$^{-1}$")
+    fig1.savefig("{}-bla-fourier.png".format(solvent))
 
-    fig2, ax2 = plt.subplots()
-    plot_individuals(ax2, time, d1s, d2s, d3s)
+    fig2, ax2 = plt.subplots(1, 2)
+    fig2.set_size_inches(10, 5)
+    allpoints = np.dstack((d1s_s0, d2s_s0, d3s_s0, d1s_s1, d2s_s1, d3s_s1))
+    ylims = allpoints.min(), allpoints.max()
+    print('ylims', ylims)
+    print('allpoints', allpoints.shape)
+    plot_individuals(ax2[0], time, d1s_s0, d2s_s0, d3s_s0, ylims)
+    plot_individuals(ax2[1], time, d1s_s1, d2s_s1, d3s_s1, ylims)
+    ax2[1].legend(frameon=False, bbox_to_anchor=(1, 1.1))
+    fig2.savefig("{}-bla-individuals.png".format(solvent))
 
-    fig3, ax3 = plt.subplots()
-    plot_bla(ax3, time, d1s, d2s, d3s, suffix, solvent)
+    fig3, ax3 = plt.subplots(1,2)
+    fig3.set_size_inches(10, 5)
+    allpoints = np.dstack((bla_s0, bla_s1))
+    ylims = allpoints.min(), allpoints.max()
+    plot_bla(ax3[0], time, bla_s0, "S0", ylims)
+    plot_bla(ax3[1], time, bla_s1, "S1", ylims)
+    fig3.savefig("{}-bla.png".format(solvent))
 
     plt.show()
 
-def plot_bla(ax, time, d1s, d2s, d3s, suffix, solvent):
-    bla = np.subtract(np.true_divide(np.add(d1s, d3s), 2), d2s)
+def plot_bla(ax, time, bla, state, ylims):
     t = np.linspace(0, time, len(bla), endpoint=True)
     ax.plot(t, bla)
-    if suffix == 'abs':
-        suffix = 'S0'
-    else:
-        suffix = 'S1'
-    ax.set_title("{} BLA {}".format(solvent, suffix))
     ax.set_xlabel("Time (ps)")
     ax.set_ylabel(r"Deformation ($\AA$)")
+    ax.set_ylim(ylims[0], ylims[1])
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.tick_params(direction='in')
     print("Average Bla: {}A".format(np.average(bla)))
 
-def plot_fourier(ax, ts, yi):
+def plot_fourier(ax, ts, yi, state):
     x, y = myFourierTransform(yi, ts)
     x = x * HZ_TO_WAVENUMBER
-    ax.axes.get_yaxis().set_visible(False)
+    ax.axes.get_yaxis().set_ticks([])
+    ax.set_ylabel(state)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
-    ax.spines['left'].set_visible(False)
-    ax.set_xlabel("cm$^{-1}$")
     ax.tick_params(direction='in')
     x, y = truncate_to(5000, x, y)
     ax.plot(x[1:], y[1:])
@@ -96,7 +116,7 @@ def print_averages(d1s, d2s, d3s, timestep):
     print("timestep", timestep)
     print("steps", len(d1s))
 
-def plot_individuals(ax, time, d1s, d2s, d3s):
+def plot_individuals(ax, time, d1s, d2s, d3s, ylims):
     t = np.linspace(0, time, len(d1s), endpoint=True)
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
@@ -104,6 +124,6 @@ def plot_individuals(ax, time, d1s, d2s, d3s):
     ax.plot(t, d1s, label='d1')
     ax.plot(t, d2s, label='d2')
     ax.plot(t, d3s, label='d3')
-    ax.legend(frameon=False, bbox_to_anchor=(1, 1.1))
+    ax.set_ylim(ylims[0], ylims[1])
     ax.set_xlabel("Time (ps)")
     ax.set_ylabel(r"Bond Length ($\AA$)")
