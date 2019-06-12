@@ -13,18 +13,19 @@ def remove_failures(dss):
         result.append([traj for traj in distance if len(traj) == nsteps])
     return np.array(result)
 
-def getDistance(traj, suffix, atom1, atom2):
+def getDistance(traj, suffix, pairs):
     print('{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj))
     traj = pt.load('{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj), top='m1.prmtop')
-    return pt.distance(traj, '@{} @{}'.format(atom1, atom2))
+    return [pt.distance(traj, '@{} @{}'.format(pair[0], pair[1]))
+            for pair in pairs]
 
 def finished(suffix, traj):
     filename = "{}/traj_{}/nasqm_{}_{}.nc".format(suffix, traj, suffix, traj)
     return os.path.isfile(filename)
 
-def getDistances(nTrajs, suffix, atom1, atom2):
-    return [getDistance(traj, suffix, atom1, atom2) for traj in range(1, nTrajs+1)
-            if finished(suffix, traj)]
+def getDistances(nTrajs, suffix, pairs):
+    return np.array([getDistance(traj, suffix, pairs) for traj in range(1, nTrajs+1)
+                     if finished(suffix, traj)])
 
 def calc_bla(d1, d2, d3):
     return np.subtract(np.true_divide(np.add(d1, d3), 2), d2)

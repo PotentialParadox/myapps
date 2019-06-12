@@ -18,9 +18,11 @@ def main():
         plotter(dss_s0[:, :args.n_trajs, ::1], dss_s1[:, :args.n_trajs, ::1],
                 args.traj_time, args.solvent)
     else:
-        d1 = getDistances(args.n_trajs, suffix, 17, 16)
-        d2 = getDistances(args.n_trajs, suffix, 16, 15)
-        d3 = getDistances(args.n_trajs, suffix, 15, 14)
+        pairs = [(17,16), (16,15), (15,14)]
+        data = getDistances(args.n_trajs, suffix, pairs)
+        d1 = data[:,0]
+        d2 = data[:,1]
+        d3 = data[:,2]
         bla = np.array([d1, d2, d3])
         if args.debug:
             print(bla.shape)
