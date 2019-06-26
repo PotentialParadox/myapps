@@ -53,7 +53,7 @@ def plotter(dss_s0, dss_s1, time, solvent):
     plot_fourier(ax1[1], timestep, d1s_s0, "S0")
     plot_fourier(ax1[0], timestep, d1s_s1, "S1")
     ax1[1].set_xlabel("cm$^{-1}$")
-    fig1.savefig("{}-bla-fourier.png".format(solvent))
+    fig1.savefig("{}-bla-fourier.png".format(solvent), bbox_inches='tight')
 
     fig2, ax2 = plt.subplots(1, 2)
     fig2.set_size_inches(10, 5)
@@ -64,7 +64,7 @@ def plotter(dss_s0, dss_s1, time, solvent):
     plot_individuals(ax2[0], time, d1s_s0, d2s_s0, d3s_s0, ylims)
     plot_individuals(ax2[1], time, d1s_s1, d2s_s1, d3s_s1, ylims)
     ax2[1].legend(frameon=False, bbox_to_anchor=(1, 1.1))
-    fig2.savefig("{}-bla-individuals.png".format(solvent))
+    fig2.savefig("{}-bla-individuals.png".format(solvent), bbox_inches='tight')
 
     fig3, ax3 = plt.subplots(1,2)
     fig3.set_size_inches(10, 5)
@@ -72,7 +72,7 @@ def plotter(dss_s0, dss_s1, time, solvent):
     ylims = allpoints.min(), allpoints.max()
     plot_bla(ax3[0], time, bla_s0, "S0", ylims)
     plot_bla(ax3[1], time, bla_s1, "S1", ylims)
-    fig3.savefig("{}-bla.png".format(solvent))
+    fig3.savefig("{}-bla.png".format(solvent), bbox_inches='tight')
 
     plt.show()
 
@@ -85,7 +85,7 @@ def plot_bla(ax, time, bla, state, ylims):
     ax.spines['right'].set_visible(False)
     ax.spines['top'].set_visible(False)
     ax.tick_params(direction='in')
-    print("Average Bla: {}A".format(np.average(bla)))
+    print("Average Bla: {}A".format(np.average(bla[half:])))
 
 def plot_fourier(ax, ts, yi, state):
     x, y = myFourierTransform(yi, ts)
@@ -105,9 +105,10 @@ def truncate_to(limit, xs, ys):
     return new_xs, new_ys
 
 def print_averages(d1s, d2s, d3s, timestep):
-    d1 = np.average(d1s[-100:])
-    d2 = np.average(d2s[-100:])
-    d3 = np.average(d3s[-100:])
+    half = int(len(d1s)/2)
+    d1 = np.average(d1s[half:])
+    d2 = np.average(d2s[half:])
+    d3 = np.average(d3s[half:])
     print("d1: ", d1)
     print("d2: ", d2)
     print("d3: ", d3)
