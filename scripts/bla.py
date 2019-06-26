@@ -13,12 +13,14 @@ def main():
     args = parser.parse_args()
     suffix = "flu" if args.flu else "abs"
     if args.plot:
-        dss_s0 = remove_failures(np.load("bla_abs.npy"))
-        dss_s1 = remove_failures(np.load("bla_flu.npy"))
+        dss_s0 = remove_failures(np.load("bla_close_abs.npy"))
+        dss_s1 = remove_failures(np.load("bla_close_flu.npy"))
         plotter(dss_s0[:, :args.n_trajs, ::1], dss_s1[:, :args.n_trajs, ::1],
                 args.traj_time, args.solvent)
     else:
-        pairs = [(17,16), (16,15), (15,14)]
+        # pairs from outside in
+        # pairs = [(17,16), (16,15), (15,14)] # Far Pairs
+        pairs = [(6,7), (7,8), (8,9)] # Close Pairs
         data = getDistances(args.n_trajs, suffix, pairs)
         d1 = data[:,0]
         d2 = data[:,1]
@@ -26,6 +28,7 @@ def main():
         bla = np.array([d1, d2, d3])
         if args.debug:
             print(bla.shape)
-        np.save("bla_{}.npy".format(suffix), bla)
+        # np.save("bla_{}.npy".format(suffix), bla) #Used for far
+        np.save("bla_close_{}.npy".format(suffix), bla) #Used for far
 
 main()
