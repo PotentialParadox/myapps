@@ -26,16 +26,11 @@ def getDihedrals(nTrajs, suffix, atoms):
 def dihedralAbs(dihs):
     return [min(abs(di), 180-abs(di)) for di in dihs]
 
-def plotter(dihs, suffix, time, solvent):
-    fig1, ax1 = plt.subplots()
-    plot_dihedral(ax1, dihs, time, suffix, solvent)
-    plt.savefig("{}_dihedral".format(suffix))
-    plt.show()
+def plotter(ax, dihs, label, time):
+    plot_dihedral(ax, dihs, time, label)
     print("Average Dihedral: {} Degrees".format(np.average(dihs)))
 
-def plot_dihedral(ax, dihs, time, suffix, solvent):
+def plot_dihedral(ax, dihs, time, label):
     t = np.linspace(0, time, len(dihs), endpoint=True)
-    ax.plot(t, dihs)
-    suffix = 'S0' if suffix == 'abs' else 'S1'
-    ax.set_title("Dihedral at {} in {}".format(suffix, solvent))
-    ax.set_xlabel("time ps")
+    ax.plot(t, dihs, label=label)
+    ax.set_xlabel("Time (ps)")
