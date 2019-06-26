@@ -16,7 +16,8 @@ def quadratic_formula(a, b, c):
 
 def myFourierTransform(data, timestep):
     nsamples = len(data)
-    y = scipy.fftpack.fft(data)
+    normalized_data = data - np.average(data)
+    y = scipy.fftpack.fft(normalized_data)
     x = np.linspace(0.0, 1.0/(2.0*timestep), nsamples/2)
     y = 2.0/nsamples * np.abs(y[:nsamples//2])
     return x, y
