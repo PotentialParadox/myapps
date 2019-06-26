@@ -13,5 +13,6 @@ setup(
             'scripts/solvent_dipole_rotation.py',
             'scripts/dihedral.py',
             'scripts/bla.py',
+            'scripts/amber_compare_total_energy.py',
            ]
 )
