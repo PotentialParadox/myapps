@@ -10,13 +10,15 @@ def main():
     parser.add_argument("--plot", help="print graph", action="store_true")
     parser.add_argument("--solvent", help="solvent used in calculation", default="")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--near", action="store_true")
     args = parser.parse_args()
     suffix = "flu" if args.flu else "abs"
+    distance = "close_" if args.near else ""
     if args.plot:
-        dss_s0 = remove_failures(np.load("bla_abs.npy"))
-        dss_s1 = remove_failures(np.load("bla_flu.npy"))
+        dss_s0 = remove_failures(np.load("bla_{}abs.npy".format(distance)))
+        dss_s1 = remove_failures(np.load("bla_{}flu.npy".format(distance)))
         plotter(dss_s0[:, :args.n_trajs, ::1], dss_s1[:, :args.n_trajs, ::1],
-                args.traj_time, args.solvent)
+                args.traj_time, args.solvent, args.near)
     else:
         pairs = [(17,16), (16,15), (15,14)]
         data = getDistances(args.n_trajs, suffix, pairs)

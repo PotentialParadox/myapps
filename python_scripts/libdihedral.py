@@ -28,9 +28,12 @@ def dihedralAbs(dihs):
 
 def plotter(ax, dihs, label, time):
     plot_dihedral(ax, dihs, time, label)
-    print("Average Dihedral: {} Degrees".format(np.average(dihs)))
+    half=int(len(dihs)/2)
+    print("Average Last Half Dihedral: {} Degrees".format(np.average(dihs[half:])))
 
 def plot_dihedral(ax, dihs, time, label):
     t = np.linspace(0, time, len(dihs), endpoint=True)
     ax.plot(t, dihs, label=label)
+    ax.spines['right'].set_visible(False)
+    ax.spines['top'].set_visible(False)
     ax.set_xlabel("Time (ps)")
