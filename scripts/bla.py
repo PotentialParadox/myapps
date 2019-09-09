@@ -11,6 +11,7 @@ def main():
     parser.add_argument("--solvent", help="solvent used in calculation", default="")
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--near", action="store_true")
+    parser.add_argument("--output", "-o", help="output figure file")
     args = parser.parse_args()
     suffix = "flu" if args.flu else "abs"
     distance = "close_" if args.near else ""
@@ -28,6 +29,7 @@ def main():
         bla = np.array([d1, d2, d3])
         if args.debug:
             print(bla.shape)
-        np.save("bla_{}.npy".format(suffix), bla)
+        if args.output:
+            np.save(args.output, bla)
 
 main()

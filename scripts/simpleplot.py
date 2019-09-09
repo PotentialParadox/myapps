@@ -1,7 +1,9 @@
 import numpy as np
 import seaborn as sns
+from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.optimize.minpack import curve_fit
+import io
 import argparse
 
 def exp_decay(t, A, K, C):
@@ -69,7 +71,7 @@ def main():
     ax.get_yaxis().get_major_formatter().set_useOffset(False)
     ax.get_yaxis().get_major_formatter().set_scientific(False)
     if args.output is not None:
-        plt.savefig("{}".format(args.output), bbox_inches='tight')
+        fig.savefig(args.output, bbox_inches='tight')
     plt.show()
 
 main()

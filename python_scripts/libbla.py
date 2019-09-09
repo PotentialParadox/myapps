@@ -4,7 +4,7 @@ import os.path
 import matplotlib.pyplot as plt
 import seaborn as sns
 from python_scripts.libmyconstants import HZ_TO_WAVENUMBER
-from python_scripts.libmymath import myFourierTransform
+# from python_scripts.libmymath import myFourierTransform
 
 def remove_failures(dss):
     nsteps = max([len(x) for x in dss[0]])
@@ -88,16 +88,16 @@ def plot_bla(ax, time, bla, state, ylims):
     print("half",half)
     print("Average Bla: {}A".format(np.average(bla[half:])))
 
-def plot_fourier(ax, ts, yi, state):
-    x, y = myFourierTransform(yi, ts)
-    x = x * HZ_TO_WAVENUMBER
-    ax.axes.get_yaxis().set_ticks([])
-    ax.set_ylabel(state)
-    ax.spines['right'].set_visible(False)
-    ax.spines['top'].set_visible(False)
-    ax.tick_params(direction='in')
-    x, y = truncate_to(5000, x, y)
-    ax.plot(x[1:], y[1:])
+# def plot_fourier(ax, ts, yi, state):
+#     x, y = myFourierTransform(yi, ts)
+#     x = x * HZ_TO_WAVENUMBER
+#     ax.axes.get_yaxis().set_ticks([])
+#     ax.set_ylabel(state)
+#     ax.spines['right'].set_visible(False)
+#     ax.spines['top'].set_visible(False)
+#     ax.tick_params(direction='in')
+#     x, y = truncate_to(5000, x, y)
+#     ax.plot(x[1:], y[1:])
 
 def truncate_to(limit, xs, ys):
     filtered = [(x[0], x[1]) for x in zip(xs, ys) if x[0] <= limit]

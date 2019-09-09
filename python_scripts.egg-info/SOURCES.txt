@@ -18,5 +18,11 @@ python_scripts.egg-info/SOURCES.txt
 python_scripts.egg-info/dependency_links.txt
 python_scripts.egg-info/requires.txt
 python_scripts.egg-info/top_level.txt
+scripts/amber_compare_total_energy.py
+scripts/bla.py
+scripts/dihedral.py
 scripts/dipole.py
+scripts/myaverage.py
+scripts/omega1.py
+scripts/simpleplot.py
 scripts/solvent_dipole_rotation.py
