@@ -15,6 +15,7 @@ def fit_exp_nonlinear(ax, t, y):
     A, K, Copt = opt_parms
     C = Copt-dy
     fit_y = exp_decay(t, A, K, C)
+    print("Time constant: {}".format(1/K))
     ax.plot(t, fit_y,
             label='Fitted Function:\n $y = %2.2f e^{-%2.4f t} + %2.2f$' % (A, K, C))
 
@@ -48,7 +49,7 @@ def main():
         plt.ylim(args.ylims)
     startindex = 0
     if args.firstx:
-        startindex = 1
+        startindex = 0
         xs = data[:, 0]
         data = data[:, 1:]
     if args.labels is not None:
