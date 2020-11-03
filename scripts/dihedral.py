@@ -31,7 +31,7 @@ def main():
     parser.add_argument("traj_time", help="time of each trajectory", type=float)
     parser.add_argument("--window_width", help="larger number greater smoothness 1=raw", type=int,
                         default=1)
-    parser.add_argument("--flu", help="apply to fluorescence", action="store_true")
+    parser.add_argument("--directory", help="name of the directory")
     parser.add_argument("--abs_files", help="labels of the data", default=[1], nargs="+")
     parser.add_argument("--flu_files", help="labels of the data", default=[1], nargs="+")
     parser.add_argument("--labels", help="file names", default=[""], nargs="+")
@@ -40,8 +40,9 @@ def main():
     parser.add_argument("--letter", help="the solvent in your system", default=null_list, nargs="+")
     parser.add_argument("--ylims", help="limits", default=[], nargs="+", type=float)
     parser.add_argument("--fig_out", help="outputfile for the figure")
+    parser.add_argument("--output", help="outputfile for csv file")
     args = parser.parse_args()
-    suffix = 'flu' if args.flu else 'abs'
+    suffix = args.directory
     if args.plot:
         sns.set()
         sns.set_style("white")
@@ -56,14 +57,14 @@ def main():
             cumsum_vec = np.cumsum(np.insert(dih, 0, 0))
             ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
             # plotter(axs[0], ma_vec, label, args.traj_time)
-            print_average(ma_vec, label)
+            print_average(ma_vec, "abs")
         for (filename, label) in zip(args.flu_files, args.labels):
             dihs = np.load(filename)
             dih = np.average(dihs[:args.n_trajs], axis=0)
             cumsum_vec = np.cumsum(np.insert(dih, 0, 0))
             ma_vec = (cumsum_vec[window_width:] - cumsum_vec[:-window_width]) / window_width
             plotter(axs, ma_vec, label, args.traj_time)
-            print_average(ma_vec, label)
+            print_average(ma_vec, "flu")
 
             # Non-linear fitting
             t = np.linspace(0, args.traj_time, len(ma_vec), endpoint=True)
@@ -95,12 +96,22 @@ def main():
         dihs = getDihedrals(args.n_trajs, suffix, [[18, 17, 16, 15], # Far
                                                    [16, 15, 14, 13]])
         # dihs = getDihedrals(args.n_trajs, suffix, [[7, 8, 9, 10], # Near
-                                                   # [5, 6, 7, 8]])
+        #                                            [5, 6, 7, 8]])
+        #        dihs = getDihedrals(args.n_trajs, suffix, [[11, 12, 15, 16], # PPV3-sm
+        #                                                   [18, 17, 16, 15],
+        #                                                   [10, 9, 8, 7],
+        #                                                   [5, 4, 7, 8]])
+        # dihs = getDihedrals(args.n_trajs, suffix, [[31, 24, 23, 22], # PPV3-s0
+        # [18, 21, 22, 23],
+        # [2, 4, 7, 8],
+        # [17, 9, 8, 7]])
         print(dihs.shape)
         dihs_average = np.average(dihs, axis=1)
         print(dihs_average.shape)
         np.save("dihedral_{}.npy".format(suffix), dihs_average) # Far
-        # np.save("dihedral_near_{}.npy".format(suffix), dihs_average) # Near
+        if args.output:
+            np.savetxt(args.output, dihs_average, delimiter=',')
+            # np.save("dihedral_near_{}.npy".format(suffix), dihs_average) # Near
 
 
 

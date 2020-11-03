@@ -14,10 +14,12 @@ def remove_failures(dss):
     return np.array(result)
 
 def getDistance(traj, suffix, pairs):
-    print('{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj))
-    traj = pt.load('{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj), top='m1.prmtop')
-    return [pt.distance(traj, '@{} @{}'.format(pair[0], pair[1]))
+    filename = '{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj)
+    print(filename)
+    traj = pt.load(filename, top='m1.prmtop')
+    a =  [pt.distance(traj, '@{} @{}'.format(pair[0], pair[1]))
             for pair in pairs]
+    return a
 
 def finished(suffix, traj):
     filename = "{}/traj_{}/nasqm_{}_{}.nc".format(suffix, traj, suffix, traj)

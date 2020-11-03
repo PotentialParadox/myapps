@@ -1,6 +1,5 @@
 import numpy as np
 import seaborn as sns
-from PIL import Image
 import matplotlib.pyplot as plt
 from scipy.optimize.minpack import curve_fit
 import io

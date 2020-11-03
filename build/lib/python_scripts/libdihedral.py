@@ -4,9 +4,11 @@ import pytraj as pt
 import matplotlib.pyplot as plt
 
 def getDihedral(suffix, traj, atomss):
-    traj_file = '{0}/traj_{1}/nasqm_{0}_{1}.nc'.format(suffix, traj)
-    print(traj_file)
-    traj = pt.load(traj_file, top='m1.prmtop')
+    init_file = f'{suffix}/traj_{traj}/restart_0/snap_for_{suffix}_t{traj}_r{0}.rst'
+    traj_file = f'{suffix}/traj_{traj}/nasqm_{suffix}_{traj}.nc'
+    # print(f"loading {traj_file} and {init_file}")
+    print(f"loading {traj_file}")
+    traj = pt.load([init_file, traj_file], top='m1.prmtop')
     return [dihedralAbs(pt.dihedral(traj, '@{} @{} @{} @{}'.format(atoms[0],
                                                                    atoms[1],
                                                                    atoms[2],
@@ -28,8 +30,10 @@ def dihedralAbs(dihs):
 
 def plotter(ax, dihs, label, time):
     plot_dihedral(ax, dihs, time, label)
+
+def print_average(dihs, label=''):
     half=int(len(dihs)/2)
-    print("Average Last Half Dihedral: {} Degrees".format(np.average(dihs[half:])))
+    print("Average Last Half Dihedral for {}: {} Degrees".format(label, np.average(dihs[half:])))
 
 def plot_dihedral(ax, dihs, time, label):
     t = np.linspace(0, time, len(dihs), endpoint=True)
