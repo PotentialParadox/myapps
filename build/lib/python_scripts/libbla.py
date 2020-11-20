@@ -7,27 +7,24 @@ from python_scripts.libmyconstants import HZ_TO_WAVENUMBER
 # from python_scripts.libmymath import myFourierTransform
 
 def remove_failures(dss):
-    nsteps = max([len(x) for x in dss[0]])
-    result = []
-    for distance in dss:
-        result.append([traj for traj in distance if len(traj) == nsteps])
-    return np.array(result)
+    nsteps = max([len(d[2]) for d in dss])
+    return np.array([d for d in dss if len(d[2]) == nsteps])
 
 def getDistance(traj, suffix, pairs):
     filename = '{}/traj_{}/nasqm_{}_{}.nc'.format(suffix, traj, suffix, traj)
     print(filename)
     traj = pt.load(filename, top='m1.prmtop')
-    a =  [pt.distance(traj, '@{} @{}'.format(pair[0], pair[1]))
-            for pair in pairs]
-    return a
+    return  [pt.distance(traj, '@{} @{}'.format(pair[0], pair[1]))
+             for pair in pairs]
 
 def finished(suffix, traj):
     filename = "{}/traj_{}/nasqm_{}_{}.nc".format(suffix, traj, suffix, traj)
     return os.path.isfile(filename)
 
 def getDistances(nTrajs, suffix, pairs):
-    return np.array([getDistance(traj, suffix, pairs) for traj in range(1, nTrajs+1)
-                     if finished(suffix, traj)])
+    dss = [getDistance(traj, suffix, pairs) for traj in range(1, nTrajs+1)
+                     if finished(suffix, traj)]
+    return remove_failures(dss)
 
 def calc_bla(d1, d2, d3):
     return np.subtract(np.true_divide(np.add(d1, d3), 2), d2)
